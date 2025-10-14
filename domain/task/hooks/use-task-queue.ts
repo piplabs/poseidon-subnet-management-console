@@ -13,25 +13,44 @@ export interface TaskQueueDetails {
 }
 
 async function fetchTaskQueue(queueId: string): Promise<TaskQueueDetails> {
-  // TODO: Replace with actual API call to GET /api/v1/queues/{queueId}
-  // This endpoint is MISSING in current API design - needs to be implemented
-  // const response = await fetch(`/api/v1/queues/${queueId}`)
-  // return await response.json()
+  // TODO: Replace with actual API call to GET /api/v1/queues?queueId={queueId}
+  // const response = await fetch(`/api/v1/queues?queueId=${queueId}`)
+  // const data = await response.json()
+  // return data.items[0] // Extract first item from array
 
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800))
 
-  // MOCK DATA - Replace with actual API response
+  // MOCK DATA - Simulating API response structure: { items: [...] }
+  const apiResponse = {
+    items: [
+      {
+        queueId: queueId,
+        partitionCount: 4,
+        createdAt: "2025-10-01T00:00:00Z",
+        pendingActivities: 15,
+        throughputPerMin: 180,
+        avgWaitSec: 6.3,
+        oldestPendingSince: "2025-10-10T04:20:10Z",
+      }
+    ],
+    page: 1,
+    pageSize: 10,
+    total: 1
+  }
+
+  // Transform API response to FE format
+  const queue = apiResponse.items[0]
   return {
-    id: queueId,
-    name: "chutes-default",
-    pendingActivities: 15,
-    activeWorkers: 5,
-    averageWaitTime: "45s",
-    throughput: "12 activities/min",
-    currentDepth: 15,
-    createdAt: "2024-01-15",
-    oldestPendingActivity: "2 minutes ago",
+    id: queue.queueId,
+    name: queue.queueId, // API doesn't provide name field yet
+    pendingActivities: queue.pendingActivities,
+    activeWorkers: 5, // Not in API response
+    averageWaitTime: `${queue.avgWaitSec}s`,
+    throughput: `${queue.throughputPerMin}/min`,
+    currentDepth: queue.pendingActivities,
+    createdAt: new Date(queue.createdAt).toLocaleDateString(),
+    oldestPendingActivity: "2 minutes ago", // Would need to calculate from oldestPendingSince
   }
 }
 

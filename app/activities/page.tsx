@@ -1,6 +1,5 @@
 "use client"
 
-import { Header } from "@/common/components/layout/header"
 import { Card } from "@/common/components/card"
 import { Button } from "@/common/components/button"
 import { Input } from "@/common/components/input"
@@ -14,8 +13,6 @@ export default function ActivitiesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Activities</h1>
@@ -23,14 +20,11 @@ export default function ActivitiesPage() {
           </div>
           <Skeleton className="h-96 w-full" />
         </main>
-      </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Activities</h1>
@@ -40,14 +34,11 @@ export default function ActivitiesPage() {
             <div className="text-destructive">Error loading activities: {error.message}</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   if (!activities || activities.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Activities</h1>
@@ -57,14 +48,10 @@ export default function ActivitiesPage() {
             <div className="text-muted-foreground">No activities found</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
       <main className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Activities</h1>
@@ -123,6 +110,5 @@ export default function ActivitiesPage() {
           </div>
         </Card>
       </main>
-    </div>
   )
 }

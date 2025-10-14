@@ -1,13 +1,9 @@
-import { SubnetHeader } from "@/common/components/layout/subnet-header"
 import { WorkflowTable } from "@/domain/workflow/components/workflow-table"
 import { Button } from "@/common/components/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function WorkflowsPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <SubnetHeader subnetName="Chutes Subnet" />
-
       <main className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Workflows</h1>
@@ -46,6 +42,5 @@ export default function WorkflowsPage() {
           </div>
         </div>
       </main>
-    </div>
   )
 }

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "../../../common/components/button";
 import { Card } from "../../../common/components/card";
 import { Skeleton } from "../../../common/components/skeleton";
-import { SubnetHeader } from "../../../common/components/layout/subnet-header";
 import { Badge } from "../../../common/components/badge";
 import { useTaskQueue, useQueueActivities } from "@/domain/task/hooks";
 
@@ -20,9 +19,6 @@ export default function QueueDetailPage({
   const { data: activities, isLoading: activitiesLoading } = useQueueActivities(params.queueId);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SubnetHeader subnetName="Chutes Subnet" />
-
       <main className="p-6 space-y-6">
         <div className="flex items-center gap-2">
           <Link href="/">
@@ -224,6 +220,5 @@ export default function QueueDetailPage({
           )}
         </div>
       </main>
-    </div>
   );
 }

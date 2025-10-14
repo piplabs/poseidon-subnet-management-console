@@ -1,6 +1,5 @@
 "use client"
 
-import { Header } from "@/common/components/layout/header"
 import { MetricCard } from "@/domain/dashboard/components/metric-card"
 import { WorkflowTable } from "@/domain/workflow/components/workflow-table"
 import { TaskQueueTable } from "@/domain/task/components/task-queue-table"
@@ -12,9 +11,6 @@ export default function HomePage() {
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
       <main className="p-6 space-y-6">
         {/* Dashboard Header */}
         <div>
@@ -76,6 +72,5 @@ export default function HomePage() {
         {/* Task Queue Table */}
         <TaskQueueTable />
       </main>
-    </div>
   )
 }

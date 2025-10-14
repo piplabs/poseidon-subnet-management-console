@@ -1,6 +1,5 @@
 "use client"
 
-import { SubnetHeader } from "@/common/components/layout/subnet-header"
 import { Button } from "@/common/components/button"
 import { Card } from "@/common/components/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/common/components/accordion"
@@ -20,48 +19,36 @@ export default function ActivityDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <SubnetHeader subnetName="Chutes Subnet" />
         <main className="p-6 space-y-6">
           <Skeleton className="h-12 w-48" />
           <Skeleton className="h-96 w-full" />
         </main>
-      </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
-        <SubnetHeader subnetName="Chutes Subnet" />
         <main className="p-6 space-y-6">
           <Card className="p-6">
             <div className="text-destructive">Error loading activity: {error.message}</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   if (!activity) {
     return (
-      <div className="min-h-screen bg-background">
-        <SubnetHeader subnetName="Chutes Subnet" />
         <main className="p-6 space-y-6">
           <Card className="p-6">
             <div className="text-muted-foreground">Activity not found</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   const isFailed = activity.status === "failed"
 
   return (
-    <div className="min-h-screen bg-background">
-      <SubnetHeader subnetName="Chutes Subnet" />
-
       <main className="p-6 space-y-6">
         <div className="flex items-center gap-2">
           <Link href="/">
@@ -193,6 +180,5 @@ export default function ActivityDetailPage({
           </Accordion>
         </Card>
       </main>
-    </div>
   )
 }

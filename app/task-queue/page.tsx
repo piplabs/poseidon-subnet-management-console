@@ -1,13 +1,9 @@
-import { SubnetHeader } from "@/common/components/layout/subnet-header"
 import { TaskQueueTable } from "@/domain/task/components/task-queue-table"
 import { Button } from "@/common/components/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function TaskQueuePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <SubnetHeader subnetName="Chutes Subnet" />
-
       <main className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Task Queues</h1>
@@ -45,6 +41,5 @@ export default function TaskQueuePage() {
           </div>
         </div>
       </main>
-    </div>
   )
 }

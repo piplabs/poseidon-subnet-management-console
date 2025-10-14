@@ -1,6 +1,5 @@
 "use client"
 
-import { Header } from "@/common/components/layout/header"
 import { Button } from "@/common/components/button"
 import { Card } from "@/common/components/card"
 import { Skeleton } from "@/common/components/skeleton"
@@ -13,46 +12,34 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <Skeleton className="h-12 w-48" />
           <Skeleton className="h-96 w-full" />
         </main>
-      </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <Card className="p-6">
             <div className="text-destructive">Error loading worker: {error.message}</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   if (!worker) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
         <main className="p-6 space-y-6">
           <Card className="p-6">
             <div className="text-muted-foreground">Worker not found</div>
           </Card>
         </main>
-      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
       <main className="p-6 space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2">
@@ -243,6 +230,5 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
           )}
         </Card>
       </main>
-    </div>
   )
 }
