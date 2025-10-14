@@ -6,60 +6,57 @@ import { Card } from "@/common/components/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/common/components/accordion"
 import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-status-badge"
 import { WorkflowTimeline } from "@/domain/workflow/components/workflow-timeline"
+import { Skeleton } from "@/common/components/skeleton"
+import { useActivity } from "@/domain/workflow/hooks"
 import { BarChart3, AlertCircle } from "lucide-react"
 import Link from "next/link"
-
-const activityData = {
-  id: "act-003",
-  name: "Process Data",
-  status: "succeeded",
-  workflowId: "wf-12345",
-  workflowName: "Data Processing Workflow",
-  startTime: "2025-01-15 14:30:18",
-  endTime: "2025-01-15 14:30:23",
-  duration: "5.2s",
-  worker: "worker-003",
-  input: {
-    data: [
-      { id: 1, value: "sample data 1" },
-      { id: 2, value: "sample data 2" },
-      { id: 3, value: "sample data 3" },
-    ],
-    options: {
-      processType: "batch",
-      priority: "high",
-    },
-  },
-  output: {
-    processedCount: 3,
-    results: [
-      { id: 1, status: "success", processedValue: "SAMPLE DATA 1" },
-      { id: 2, status: "success", processedValue: "SAMPLE DATA 2" },
-      { id: 3, status: "success", processedValue: "SAMPLE DATA 3" },
-    ],
-    metadata: {
-      processingTime: "5.2s",
-      timestamp: "2025-01-15 14:30:23",
-    },
-  },
-  error: null,
-}
-
-const errorData = {
-  message: "Failed to process data: Invalid input format",
-  type: "ValidationError",
-  stackTrace: `Error: Failed to process data: Invalid input format
-    at processData (worker.ts:45:11)
-    at Activity.execute (activity.ts:123:23)
-    at Workflow.run (workflow.ts:89:15)`,
-}
 
 export default function ActivityDetailPage({
   params,
 }: {
   params: { activityId: string }
 }) {
-  const isFailed = activityData.status === "failed"
+  const { data: activity, isLoading, error } = useActivity(params.activityId)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SubnetHeader subnetName="Chutes Subnet" />
+        <main className="p-6 space-y-6">
+          <Skeleton className="h-12 w-48" />
+          <Skeleton className="h-96 w-full" />
+        </main>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SubnetHeader subnetName="Chutes Subnet" />
+        <main className="p-6 space-y-6">
+          <Card className="p-6">
+            <div className="text-destructive">Error loading activity: {error.message}</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
+  if (!activity) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SubnetHeader subnetName="Chutes Subnet" />
+        <main className="p-6 space-y-6">
+          <Card className="p-6">
+            <div className="text-muted-foreground">Activity not found</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
+  const isFailed = activity.status === "failed"
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,16 +77,16 @@ export default function ActivityDetailPage({
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">Activity Details</h1>
-              <WorkflowStatusBadge status={activityData.status as any} />
+              <WorkflowStatusBadge status={activity.status as any} />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
               <span className="font-mono">{params.activityId}</span>
               <span className="hidden sm:inline">•</span>
-              <span>{activityData.name}</span>
+              <span>{activity.name}</span>
               <span className="hidden sm:inline">•</span>
-              <span>Started: {activityData.startTime}</span>
+              <span>Started: {activity.startTime || "-"}</span>
               <span className="hidden sm:inline">•</span>
-              <span>Duration: {activityData.duration}</span>
+              <span>Duration: {activity.duration || "-"}</span>
             </div>
           </div>
         </div>
@@ -98,24 +95,26 @@ export default function ActivityDetailPage({
           <Card className="p-4">
             <div className="text-sm text-muted-foreground mb-1">Workflow</div>
             <Link
-              href={`/workflows/${activityData.workflowId}`}
+              href={`/workflows/${activity.workflowId}`}
               className="font-mono text-sm text-primary hover:underline"
             >
-              {activityData.workflowId}
+              {activity.workflowId}
             </Link>
-            <div className="text-xs text-muted-foreground mt-1">{activityData.workflowName}</div>
+            {activity.workflowName && (
+              <div className="text-xs text-muted-foreground mt-1">{activity.workflowName}</div>
+            )}
           </Card>
           <Card className="p-4">
             <div className="text-sm text-muted-foreground mb-1">Worker</div>
-            <div className="font-mono text-sm">{activityData.worker}</div>
+            <div className="font-mono text-sm">{activity.worker || "-"}</div>
           </Card>
           <Card className="p-4">
             <div className="text-sm text-muted-foreground mb-1">End Time</div>
-            <div className="text-sm">{activityData.endTime}</div>
+            <div className="text-sm">{activity.endTime || "-"}</div>
           </Card>
         </div>
 
-        {isFailed && (
+        {isFailed && activity.error && (
           <Card className="border-destructive/50 bg-destructive/5">
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-2 text-destructive">
@@ -123,20 +122,26 @@ export default function ActivityDetailPage({
                 <h3 className="text-lg font-semibold">Error Details</h3>
               </div>
               <div className="space-y-2">
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Error Type</div>
-                  <div className="font-mono text-sm">{errorData.type}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Message</div>
-                  <div className="text-sm">{errorData.message}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Stack Trace</div>
-                  <pre className="text-xs font-mono bg-background/50 p-3 rounded border border-border overflow-x-auto">
-                    {errorData.stackTrace}
-                  </pre>
-                </div>
+                {activity.error.type && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Error Type</div>
+                    <div className="font-mono text-sm">{activity.error.type}</div>
+                  </div>
+                )}
+                {activity.error.message && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Message</div>
+                    <div className="text-sm">{activity.error.message}</div>
+                  </div>
+                )}
+                {activity.error.stackTrace && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Stack Trace</div>
+                    <pre className="text-xs font-mono bg-background/50 p-3 rounded border border-border overflow-x-auto">
+                      {activity.error.stackTrace}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -152,7 +157,7 @@ export default function ActivityDetailPage({
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <pre className="text-xs font-mono bg-background/50 p-4 rounded border border-border overflow-x-auto">
-                  {JSON.stringify(activityData.input, null, 2)}
+                  {JSON.stringify(activity.input || {}, null, 2)}
                 </pre>
               </AccordionContent>
             </AccordionItem>
@@ -165,7 +170,7 @@ export default function ActivityDetailPage({
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <pre className="text-xs font-mono bg-background/50 p-4 rounded border border-border overflow-x-auto">
-                  {JSON.stringify(activityData.output, null, 2)}
+                  {JSON.stringify(activity.output || {}, null, 2)}
                 </pre>
               </AccordionContent>
             </AccordionItem>

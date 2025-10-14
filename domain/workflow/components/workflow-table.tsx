@@ -1,67 +1,11 @@
 "use client"
 import { Button } from "@/common/components/button"
 import { Input } from "@/common/components/input"
+import { Skeleton } from "@/common/components/skeleton"
+import { useWorkflows } from "@/domain/workflow/hooks"
 import { Search, Calendar, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-
-interface Workflow {
-  id: string
-  type: string
-  status: "running" | "succeeded" | "failed" | "cancelled" | "pending"
-  startTime: string
-  duration: string
-  user: string
-  activities: number
-}
-
-const mockWorkflows: Workflow[] = [
-  {
-    id: "wf-001",
-    type: "DataProcessing",
-    status: "running",
-    startTime: "32s (51m ago)",
-    duration: "5m 23s",
-    user: "0x1234...5678",
-    activities: 12,
-  },
-  {
-    id: "wf-002",
-    type: "ModelTraining",
-    status: "succeeded",
-    startTime: "9m 49s (42m ago)",
-    duration: "12m 45s",
-    user: "0xabcd...ef01",
-    activities: 8,
-  },
-  {
-    id: "wf-003",
-    type: "DataValidation",
-    status: "failed",
-    startTime: "24s (51m ago)",
-    duration: "2m 10s",
-    user: "0x9876...5432",
-    activities: 5,
-  },
-  {
-    id: "wf-004",
-    type: "BatchProcessing",
-    status: "pending",
-    startTime: "38s (7h ago)",
-    duration: "-",
-    user: "0x1234...5678",
-    activities: 0,
-  },
-  {
-    id: "wf-005",
-    type: "DataProcessing",
-    status: "succeeded",
-    startTime: "42s (7h ago)",
-    duration: "8m 15s",
-    user: "0xabcd...ef01",
-    activities: 15,
-  },
-]
 
 export function WorkflowTable({
   subnetId,
@@ -69,6 +13,59 @@ export function WorkflowTable({
   showTitle = true,
 }: { subnetId?: string; showViewAll?: boolean; showTitle?: boolean }) {
   const router = useRouter()
+  const { data: workflows, isLoading, error } = useWorkflows(subnetId)
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {showTitle && (
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Workflows</h2>
+              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
+            </div>
+          </div>
+        )}
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        {showTitle && (
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Workflows</h2>
+              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
+            </div>
+          </div>
+        )}
+        <div className="border border-border rounded-lg p-6">
+          <div className="text-destructive">Error loading workflows: {error.message}</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!workflows || workflows.length === 0) {
+    return (
+      <div className="space-y-4">
+        {showTitle && (
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Workflows</h2>
+              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
+            </div>
+          </div>
+        )}
+        <div className="border border-border rounded-lg p-6">
+          <div className="text-muted-foreground">No workflows found</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -118,7 +115,7 @@ export function WorkflowTable({
       <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <tbody>
-            {mockWorkflows.map((workflow, index) => (
+            {workflows.map((workflow, index) => (
               <tr
                 key={workflow.id}
                 className={`border-b border-border last:border-b-0 hover:bg-[#1E1F22FF] transition-colors ${
@@ -157,16 +154,16 @@ export function WorkflowTable({
 
                       {/* Column 3: Activities count */}
                       <div className="min-w-[120px]">
-                        <div className="text-sm">{workflow.activities} activities</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Duration: {workflow.duration}</div>
+                        <div className="text-sm">{workflow.activities || 0} activities</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">Duration: {workflow.duration || "-"}</div>
                       </div>
 
                       {/* Column 4: User */}
                       <div className="flex-1 text-right">
                         <div className="text-sm text-muted-foreground">
-                          {workflow.startTime.split("(")[1]?.replace(")", "")} by
+                          {workflow.startTime?.split("(")[1]?.replace(")", "") || "-"}
                         </div>
-                        <div className="font-mono text-xs text-muted-foreground mt-0.5">{workflow.user}</div>
+                        <div className="font-mono text-xs text-muted-foreground mt-0.5">{workflow.user || "-"}</div>
                       </div>
                     </div>
                   </Link>

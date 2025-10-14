@@ -1,35 +1,54 @@
+"use client"
+
 import { Header } from "@/common/components/layout/header"
 import { Button } from "@/common/components/button"
 import { Card } from "@/common/components/card"
+import { Skeleton } from "@/common/components/skeleton"
+import { useWorker } from "@/domain/worker/hooks"
 import { ArrowLeft, Activity, Clock, Cpu, HardDrive } from "lucide-react"
 import Link from "next/link"
 
-// Mock worker data
-const workerData = {
-  id: "worker-node-05",
-  status: "active",
-  address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-  uptime: "5d 12h 34m",
-  tasksCompleted: 1247,
-  currentTask: "Processing workflow wf-001",
-  taskQueue: "default-queue",
-  lastHeartbeat: "2025-01-15 14:35:42",
-  version: "v1.2.3",
-  resources: {
-    cpu: "45%",
-    memory: "2.3 GB / 8 GB",
-    disk: "45 GB / 100 GB",
-  },
-  recentActivities: [
-    { id: "act-015", workflow: "wf-001", name: "Process Data", status: "running", startTime: "14:30:15" },
-    { id: "act-014", workflow: "wf-008", name: "Validate Results", status: "completed", startTime: "14:25:10" },
-    { id: "act-013", workflow: "wf-007", name: "Store Output", status: "completed", startTime: "14:20:05" },
-    { id: "act-012", workflow: "wf-006", name: "Fetch Data", status: "completed", startTime: "14:15:00" },
-    { id: "act-011", workflow: "wf-005", name: "Initialize", status: "completed", startTime: "14:10:55" },
-  ],
-}
+export default function WorkerDetailPage({ params }: { params: { id: string } }) {
+  const { data: worker, isLoading, error } = useWorker(params.id)
 
-export default function WorkerDetailPage() {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <Skeleton className="h-12 w-48" />
+          <Skeleton className="h-96 w-full" />
+        </main>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <Card className="p-6">
+            <div className="text-destructive">Error loading worker: {error.message}</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
+  if (!worker) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <Card className="p-6">
+            <div className="text-muted-foreground">Worker not found</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -50,16 +69,18 @@ export default function WorkerDetailPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">Worker Details</h1>
-              <span className="inline-flex items-center rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
-                Active
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                worker.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+              }`}>
+                {worker.status || "unknown"}
               </span>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="font-mono">{workerData.id}</span>
+              <span className="font-mono">{worker.id}</span>
               <span>•</span>
-              <span>Uptime: {workerData.uptime}</span>
+              <span>Uptime: {worker.uptime || "-"}</span>
               <span>•</span>
-              <span>Version: {workerData.version}</span>
+              <span>Version: {worker.version || "-"}</span>
             </div>
           </div>
         </div>
@@ -73,7 +94,7 @@ export default function WorkerDetailPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Tasks Completed</div>
-                <div className="text-2xl font-bold">{workerData.tasksCompleted}</div>
+                <div className="text-2xl font-bold">{worker.tasksCompleted || 0}</div>
               </div>
             </div>
           </Card>
@@ -85,7 +106,7 @@ export default function WorkerDetailPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">CPU Usage</div>
-                <div className="text-2xl font-bold">{workerData.resources.cpu}</div>
+                <div className="text-2xl font-bold">{worker.resources?.cpu || "-"}</div>
               </div>
             </div>
           </Card>
@@ -97,7 +118,7 @@ export default function WorkerDetailPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Memory</div>
-                <div className="text-xl font-bold">{workerData.resources.memory.split(" / ")[0]}</div>
+                <div className="text-xl font-bold">{worker.resources?.memory?.split(" / ")[0] || "-"}</div>
               </div>
             </div>
           </Card>
@@ -109,7 +130,7 @@ export default function WorkerDetailPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Last Heartbeat</div>
-                <div className="text-sm font-mono">{workerData.lastHeartbeat.split(" ")[1]}</div>
+                <div className="text-sm font-mono">{worker.lastHeartbeat?.split(" ")[1] || "-"}</div>
               </div>
             </div>
           </Card>
@@ -122,23 +143,23 @@ export default function WorkerDetailPage() {
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-sm text-muted-foreground">Worker ID</span>
-                <span className="text-sm font-mono">{workerData.id}</span>
+                <span className="text-sm font-mono">{worker.id}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-sm text-muted-foreground">Wallet Address</span>
-                <span className="text-sm font-mono">{workerData.address}</span>
+                <span className="text-sm font-mono">{worker.address || "-"}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-sm text-muted-foreground">Task Queue</span>
-                <span className="text-sm">{workerData.taskQueue}</span>
+                <span className="text-sm">{worker.taskQueue || "-"}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-sm text-muted-foreground">Current Task</span>
-                <span className="text-sm">{workerData.currentTask}</span>
+                <span className="text-sm">{worker.currentTask || "-"}</span>
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-sm text-muted-foreground">Version</span>
-                <span className="text-sm font-mono">{workerData.version}</span>
+                <span className="text-sm font-mono">{worker.version || "-"}</span>
               </div>
             </div>
           </Card>
@@ -149,17 +170,17 @@ export default function WorkerDetailPage() {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm text-muted-foreground">CPU</span>
-                  <span className="text-sm font-mono">{workerData.resources.cpu}</span>
+                  <span className="text-sm font-mono">{worker.resources?.cpu || "-"}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full" style={{ width: workerData.resources.cpu }} />
+                  <div className="h-full bg-primary rounded-full" style={{ width: worker.resources?.cpu || "0%" }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Memory</span>
-                  <span className="text-sm font-mono">{workerData.resources.memory}</span>
+                  <span className="text-sm font-mono">{worker.resources?.memory || "-"}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div className="h-full bg-primary rounded-full" style={{ width: "29%" }} />
@@ -169,7 +190,7 @@ export default function WorkerDetailPage() {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Disk</span>
-                  <span className="text-sm font-mono">{workerData.resources.disk}</span>
+                  <span className="text-sm font-mono">{worker.resources?.disk || "-"}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div className="h-full bg-primary rounded-full" style={{ width: "45%" }} />
@@ -182,40 +203,44 @@ export default function WorkerDetailPage() {
         {/* Recent Activities */}
         <Card className="p-6">
           <h3 className="text-sm font-medium mb-4">Recent Activities</h3>
-          <div className="space-y-2">
-            <div className="grid grid-cols-[100px,100px,1fr,120px,100px] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b border-border">
-              <div>Activity ID</div>
-              <div>Workflow</div>
-              <div>Name</div>
-              <div>Status</div>
-              <div>Start Time</div>
-            </div>
-            {workerData.recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="grid grid-cols-[100px,100px,1fr,120px,100px] gap-4 rounded-lg border border-border bg-card px-4 py-3"
-              >
-                <div className="font-mono text-sm">{activity.id}</div>
-                <Link
-                  href={`/workflows/${activity.workflow}`}
-                  className="font-mono text-sm text-primary hover:underline"
-                >
-                  {activity.workflow}
-                </Link>
-                <div className="text-sm">{activity.name}</div>
-                <div>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      activity.status === "running" ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
-                    }`}
-                  >
-                    {activity.status}
-                  </span>
-                </div>
-                <div className="font-mono text-sm text-muted-foreground">{activity.startTime}</div>
+          {worker.recentActivities && worker.recentActivities.length > 0 ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-[100px,100px,1fr,120px,100px] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b border-border">
+                <div>Activity ID</div>
+                <div>Workflow</div>
+                <div>Name</div>
+                <div>Status</div>
+                <div>Start Time</div>
               </div>
-            ))}
-          </div>
+              {worker.recentActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="grid grid-cols-[100px,100px,1fr,120px,100px] gap-4 rounded-lg border border-border bg-card px-4 py-3"
+                >
+                  <div className="font-mono text-sm">{activity.id}</div>
+                  <Link
+                    href={`/workflows/${activity.workflow}`}
+                    className="font-mono text-sm text-primary hover:underline"
+                  >
+                    {activity.workflow}
+                  </Link>
+                  <div className="text-sm">{activity.name}</div>
+                  <div>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        activity.status === "running" ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
+                      }`}
+                    >
+                      {activity.status}
+                    </span>
+                  </div>
+                  <div className="font-mono text-sm text-muted-foreground">{activity.startTime}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-muted-foreground">No recent activities</div>
+          )}
         </Card>
       </main>
     </div>

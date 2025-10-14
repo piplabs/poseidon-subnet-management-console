@@ -1,42 +1,53 @@
+"use client"
+
 import { Card } from "@/common/components/card"
 import { ScrollArea } from "@/common/components/scroll-area"
+import { Skeleton } from "@/common/components/skeleton"
+import { useActivityEvents } from "@/domain/workflow/hooks"
 import { CheckCircle2, XCircle, Clock, Info } from "lucide-react"
 
-interface ActivityEvent {
-  id: string
-  type: string
-  timestamp: string
-  status: "success" | "error" | "info" | "pending"
-  message: string
+interface ActivityEventListProps {
+  activityId?: string
 }
 
-const mockEvents: ActivityEvent[] = [
-  {
-    id: "evt-001",
-    type: "ActivityStarted",
-    timestamp: "14:30:15.234",
-    status: "info",
-    message: "Activity execution started",
-  },
-  {
-    id: "evt-002",
-    type: "InputReceived",
-    timestamp: "14:30:15.456",
-    status: "success",
-    message: "Input parameters validated",
-  },
-  { id: "evt-003", type: "Processing", timestamp: "14:30:18.123", status: "info", message: "Processing batch 1 of 5" },
-  { id: "evt-004", type: "Processing", timestamp: "14:30:21.789", status: "info", message: "Processing batch 2 of 5" },
-  {
-    id: "evt-005",
-    type: "Error",
-    timestamp: "14:30:24.456",
-    status: "error",
-    message: "Connection timeout to external service",
-  },
-]
+export function ActivityEventList({ activityId }: ActivityEventListProps) {
+  const { data: events, isLoading, error } = useActivityEvents(activityId)
 
-export function ActivityEventList() {
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium">Event History</h3>
+          <p className="text-xs text-muted-foreground mt-1">Chronological log of activity events</p>
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium">Event History</h3>
+          <p className="text-xs text-muted-foreground mt-1">Chronological log of activity events</p>
+        </div>
+        <div className="text-destructive">Error loading events: {error.message}</div>
+      </Card>
+    )
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <Card className="p-6">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium">Event History</h3>
+          <p className="text-xs text-muted-foreground mt-1">Chronological log of activity events</p>
+        </div>
+        <div className="text-muted-foreground">No events found</div>
+      </Card>
+    )
+  }
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -46,7 +57,7 @@ export function ActivityEventList() {
 
       <ScrollArea className="h-[400px]">
         <div className="space-y-2">
-          {mockEvents.map((event) => (
+          {events.map((event) => (
             <div
               key={event.id}
               className="flex items-start gap-3 rounded-lg border border-border bg-card p-3 hover:bg-accent/50 transition-colors"

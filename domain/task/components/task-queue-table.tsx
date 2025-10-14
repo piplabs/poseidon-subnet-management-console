@@ -1,73 +1,11 @@
 "use client"
 import { Button } from "@/common/components/button"
 import { Input } from "@/common/components/input"
+import { Skeleton } from "@/common/components/skeleton"
 import { Search, Calendar, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-
-interface TaskQueue {
-  id: string
-  name: string
-  pendingActivities: number
-  oldestPendingActivity: string
-  averageWaitTime: string
-  throughput: string
-  currentDepth: number
-  createdAt: string
-}
-
-const mockTaskQueues: TaskQueue[] = [
-  {
-    id: "queue-001",
-    name: "high-priority-tasks",
-    pendingActivities: 45,
-    oldestPendingActivity: "2m 15s",
-    averageWaitTime: "1m 32s",
-    throughput: "120/hr",
-    currentDepth: 45,
-    createdAt: "2h ago",
-  },
-  {
-    id: "queue-002",
-    name: "data-processing",
-    pendingActivities: 128,
-    oldestPendingActivity: "5m 42s",
-    averageWaitTime: "3m 18s",
-    throughput: "85/hr",
-    currentDepth: 128,
-    createdAt: "1d ago",
-  },
-  {
-    id: "queue-003",
-    name: "model-training",
-    pendingActivities: 12,
-    oldestPendingActivity: "45s",
-    averageWaitTime: "2m 5s",
-    throughput: "45/hr",
-    currentDepth: 12,
-    createdAt: "3h ago",
-  },
-  {
-    id: "queue-004",
-    name: "batch-jobs",
-    pendingActivities: 67,
-    oldestPendingActivity: "8m 20s",
-    averageWaitTime: "4m 55s",
-    throughput: "60/hr",
-    currentDepth: 67,
-    createdAt: "5h ago",
-  },
-  {
-    id: "queue-005",
-    name: "low-priority-tasks",
-    pendingActivities: 203,
-    oldestPendingActivity: "15m 30s",
-    averageWaitTime: "8m 12s",
-    throughput: "30/hr",
-    currentDepth: 203,
-    createdAt: "12h ago",
-  },
-]
+import { useTaskQueues } from "../hooks"
 
 export function TaskQueueTable({
   subnetId,
@@ -75,6 +13,7 @@ export function TaskQueueTable({
   showTitle = true,
 }: { subnetId?: string; showViewAll?: boolean; showTitle?: boolean }) {
   const router = useRouter()
+  const { data: taskQueues, isLoading, error } = useTaskQueues()
 
   return (
     <div className="space-y-4">
@@ -114,10 +53,21 @@ export function TaskQueueTable({
         <Button variant="outline">Sort by Depth</Button>
       </div>
 
-      <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full">
-          <tbody>
-            {(subnetId ? mockTaskQueues.slice(0, 5) : mockTaskQueues).map((queue, index) => (
+      {isLoading ? (
+        <div className="border border-border rounded-lg p-4 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="border border-border rounded-lg p-8 text-center">
+          <p className="text-destructive">Failed to load task queues</p>
+        </div>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full">
+            <tbody>
+              {(subnetId ? taskQueues?.slice(0, 5) : taskQueues)?.map((queue, index) => (
               <tr
                 key={queue.id}
                 className={`border-b border-border last:border-b-0 hover:bg-[#1E1F22FF] transition-colors ${
@@ -162,10 +112,11 @@ export function TaskQueueTable({
                   </Link>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,55 +3,37 @@
 import { useState } from "react"
 import { Button } from "@/common/components/button"
 import { Input } from "@/common/components/input"
+import { Skeleton } from "@/common/components/skeleton"
+import { useWorkflowLogs } from "@/domain/workflow/hooks"
 import { Copy, Search, XCircle, AlertTriangle } from "lucide-react"
 
-interface LogEntry {
-  timestamp: string
-  level: "info" | "error" | "warning"
-  message: string
+interface WorkflowRawLogsProps {
+  workflowId?: string
 }
 
-const mockLogs: LogEntry[] = [
-  { timestamp: "09:20:34.477", level: "info", message: "Workflow execution started" },
-  { timestamp: "09:20:34.478", level: "info", message: "Collecting input parameters..." },
-  { timestamp: "09:20:35.763", level: "info", message: "Validating input schema (0/3)..." },
-  {
-    timestamp: "09:20:35.825",
-    level: "error",
-    message: "Error validating input: Invalid parameter type [Error]: Expected string but received number",
-  },
-  {
-    timestamp: "09:20:35.825",
-    level: "error",
-    message: "  at ValidationManager.validate (/workflow/validator.js:142)",
-  },
-  { timestamp: "09:20:35.825", level: "error", message: "  at InputProcessor.process (/workflow/input.js:89)" },
-  { timestamp: "09:20:35.826", level: "error", message: "  at WorkflowExecutor.run (/workflow/executor.js:234)" },
-  { timestamp: "09:20:35.826", level: "info", message: "Retrying with type coercion..." },
-  { timestamp: "09:20:35.851", level: "info", message: "Validating input schema (1/3)..." },
-  {
-    timestamp: "09:20:35.851",
-    level: "warning",
-    message: "Warning: Deprecated parameter 'legacy_mode' detected. This will be removed in v2.0",
-  },
-  { timestamp: "09:20:35.852", level: "info", message: "Validating input schema (2/3)..." },
-  { timestamp: "09:20:35.852", level: "info", message: "Input validation completed successfully" },
-  { timestamp: "09:20:36.123", level: "info", message: "Initializing activity execution pipeline..." },
-  { timestamp: "09:20:36.456", level: "info", message: "Activity 'FetchData' started on worker-node-05" },
-  { timestamp: "09:20:38.234", level: "info", message: "Activity 'FetchData' completed in 1.778s" },
-  { timestamp: "09:20:38.456", level: "info", message: "Activity 'ProcessData' started on worker-node-01" },
-]
-
-export function WorkflowRawLogs() {
+export function WorkflowRawLogs({ workflowId }: WorkflowRawLogsProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLines, setSelectedLines] = useState<number[]>([])
+  const { data: logs, isLoading, error } = useWorkflowLogs(workflowId)
 
-  const errorCount = mockLogs.filter((log) => log.level === "error").length
-  const warningCount = mockLogs.filter((log) => log.level === "warning").length
+  if (isLoading) {
+    return <Skeleton className="h-96 w-full" />
+  }
+
+  if (error) {
+    return <div className="text-destructive">Error loading logs: {error.message}</div>
+  }
+
+  if (!logs || logs.length === 0) {
+    return <div className="text-muted-foreground">No logs found</div>
+  }
+
+  const errorCount = logs.filter((log) => log.level === "error").length
+  const warningCount = logs.filter((log) => log.level === "warning").length
 
   const filteredLogs = searchQuery
-    ? mockLogs.filter((log) => log.message.toLowerCase().includes(searchQuery.toLowerCase()))
-    : mockLogs
+    ? logs.filter((log) => log.message.toLowerCase().includes(searchQuery.toLowerCase()))
+    : logs
 
   return (
     <div className="space-y-4">

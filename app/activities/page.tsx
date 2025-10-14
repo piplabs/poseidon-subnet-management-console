@@ -5,67 +5,62 @@ import { Card } from "@/common/components/card"
 import { Button } from "@/common/components/button"
 import { Input } from "@/common/components/input"
 import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-status-badge"
+import { Skeleton } from "@/common/components/skeleton"
+import { useActivities } from "@/domain/workflow/hooks"
 import { Search, Filter, ChevronRight } from "lucide-react"
 
-interface Activity {
-  id: string
-  name: string
-  workflowId: string
-  status: "running" | "succeeded" | "failed" | "pending"
-  startTime: string
-  duration: string
-  worker: string
-}
-
-const mockActivities: Activity[] = [
-  {
-    id: "act-001",
-    name: "Initialize",
-    workflowId: "wf-001",
-    status: "succeeded",
-    startTime: "14:30:15",
-    duration: "0.5s",
-    worker: "worker-01",
-  },
-  {
-    id: "act-002",
-    name: "Fetch Data",
-    workflowId: "wf-001",
-    status: "succeeded",
-    startTime: "14:30:16",
-    duration: "2.3s",
-    worker: "worker-02",
-  },
-  {
-    id: "act-003",
-    name: "Process Data",
-    workflowId: "wf-001",
-    status: "running",
-    startTime: "14:30:18",
-    duration: "5.2s",
-    worker: "worker-03",
-  },
-  {
-    id: "act-004",
-    name: "Validate Results",
-    workflowId: "wf-002",
-    status: "failed",
-    startTime: "14:25:30",
-    duration: "1.2s",
-    worker: "worker-04",
-  },
-  {
-    id: "act-005",
-    name: "Store Output",
-    workflowId: "wf-002",
-    status: "pending",
-    startTime: "-",
-    duration: "-",
-    worker: "-",
-  },
-]
-
 export default function ActivitiesPage() {
+  const { data: activities, isLoading, error } = useActivities()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Activities</h1>
+            <p className="text-muted-foreground mt-1">Monitor individual activity executions across all workflows</p>
+          </div>
+          <Skeleton className="h-96 w-full" />
+        </main>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Activities</h1>
+            <p className="text-muted-foreground mt-1">Monitor individual activity executions across all workflows</p>
+          </div>
+          <Card className="p-6">
+            <div className="text-destructive">Error loading activities: {error.message}</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
+  if (!activities || activities.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="p-6 space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Activities</h1>
+            <p className="text-muted-foreground mt-1">Monitor individual activity executions across all workflows</p>
+          </div>
+          <Card className="p-6">
+            <div className="text-muted-foreground">No activities found</div>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -101,13 +96,11 @@ export default function ActivitiesPage() {
               <div></div>
             </div>
 
-            {mockActivities.map((activity) => (
+            {activities.map((activity) => (
               <div
                 key={activity.id}
                 className="grid grid-cols-[1fr,1.5fr,1fr,1fr,1fr,1fr,1fr,auto] gap-4 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-accent/50 cursor-pointer"
                 onClick={() => {
-                  // Navigate to subnet-specific activity detail page
-                  // Note: We'll need to determine the subnet ID from the workflow
                   window.location.href = `/activities/${activity.id}`
                 }}
               >
@@ -119,9 +112,9 @@ export default function ActivitiesPage() {
                 <div>
                   <WorkflowStatusBadge status={activity.status} />
                 </div>
-                <div className="text-sm text-muted-foreground">{activity.startTime}</div>
-                <div className="font-mono text-sm">{activity.duration}</div>
-                <div className="font-mono text-sm text-muted-foreground">{activity.worker}</div>
+                <div className="text-sm text-muted-foreground">{activity.startTime || "-"}</div>
+                <div className="font-mono text-sm">{activity.duration || "-"}</div>
+                <div className="font-mono text-sm text-muted-foreground">{activity.worker || "-"}</div>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <ChevronRight className="h-4 w-4" />
                 </Button>

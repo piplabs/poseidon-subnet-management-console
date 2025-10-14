@@ -1,33 +1,42 @@
 "use client"
 
 import { Button } from "@/common/components/button"
+import { Skeleton } from "@/common/components/skeleton"
+import { useWorkflowTimeline } from "@/domain/workflow/hooks"
 import { Minimize2, Filter } from "lucide-react"
 import { useState } from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/common/components/tooltip"
 
-interface TimelineEvent {
-  id: string
-  name: string
-  startTime: number // milliseconds from workflow start
-  endTime: number // milliseconds from workflow start
-  status: "success" | "error" | "running" | "pending"
+interface WorkflowTimelineProps {
+  workflowId?: string
 }
 
-const mockTimelineEvents: TimelineEvent[] = [
-  { id: "evt-001", name: "withdraw", startTime: 72, endTime: 116, status: "success" },
-  { id: "evt-002", name: "deposit", startTime: 159, endTime: 232, status: "success" },
-]
-
-export function WorkflowTimeline() {
+export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   const [viewMode] = useState<"minimized" | "expanded">("minimized")
+  const { data: timelineEvents, isLoading, error } = useWorkflowTimeline(workflowId)
+
+  if (isLoading) {
+    return <Skeleton className="h-64 w-full" />
+  }
+
+  if (error) {
+    return <div className="text-destructive">Error loading timeline: {error.message}</div>
+  }
+
+  if (!timelineEvents || timelineEvents.length === 0) {
+    return <div className="text-muted-foreground">No timeline events found</div>
+  }
 
   // Calculate timeline dimensions
-  const maxTime = 275 // ms
-  const timelineStart = "2025-09-01 UTC 05:22:00.017"
-  const timelineEnd = "2025-09-01 UTC 05:22:00.292"
+  const maxTime = timelineEvents.length > 0
+    ? Math.max(...timelineEvents.map(e => e.endTime || 0))
+    : 275
+  const timelineStart = timelineEvents[0]?.startTime || "2025-09-01 UTC 05:22:00.017"
+  const timelineEnd = timelineEvents[timelineEvents.length - 1]?.endTime || "2025-09-01 UTC 05:22:00.292"
 
-  // Generate time markers (every ~15ms)
-  const timeMarkers = Array.from({ length: 19 }, (_, i) => i * 14 + 14)
+  // Generate time markers
+  const markerCount = 19
+  const timeMarkers = Array.from({ length: markerCount }, (_, i) => Math.floor((maxTime / markerCount) * (i + 1)))
 
   return (
     <TooltipProvider>
@@ -72,10 +81,12 @@ export function WorkflowTimeline() {
 
             {/* Event bars */}
             <div className="absolute inset-0 flex flex-col justify-center gap-3 px-2">
-              {mockTimelineEvents.map((event) => {
-                const leftPercent = (event.startTime / maxTime) * 100
-                const widthPercent = ((event.endTime - event.startTime) / maxTime) * 100
-                const duration = event.endTime - event.startTime
+              {timelineEvents.map((event) => {
+                const startTime = typeof event.startTime === 'number' ? event.startTime : 0
+                const endTime = typeof event.endTime === 'number' ? event.endTime : startTime
+                const leftPercent = (startTime / maxTime) * 100
+                const widthPercent = ((endTime - startTime) / maxTime) * 100
+                const duration = endTime - startTime
 
                 return (
                   <div key={event.id} className="relative h-6 flex items-center">

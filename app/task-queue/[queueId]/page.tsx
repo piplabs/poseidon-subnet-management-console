@@ -5,67 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "../../../common/components/button";
 import { Card } from "../../../common/components/card";
+import { Skeleton } from "../../../common/components/skeleton";
 import { SubnetHeader } from "../../../common/components/layout/subnet-header";
 import { Badge } from "../../../common/components/badge";
-
-const queueData = {
-  id: "queue-001",
-  name: "high-priority-tasks",
-  pendingActivities: 45,
-  activeWorkers: 8,
-  averageWaitTime: "1m 32s",
-  throughput: "120/hr",
-  currentDepth: 45,
-  createdAt: "2h ago",
-  oldestPendingActivity: "2m 15s",
-};
-
-const mockActivities = [
-  {
-    id: "act-001",
-    name: "Process Batch Data",
-    type: "ProcessBatch",
-    workflowId: "wf-001",
-    workflowName: "Data Processing Workflow",
-    status: "running",
-    queuedAt: "14:35:20",
-    priority: "high",
-    estimatedDuration: "2m 30s",
-  },
-  {
-    id: "act-002",
-    name: "Validate Input",
-    type: "ValidateData",
-    workflowId: "wf-002",
-    workflowName: "Validation Workflow",
-    status: "pending",
-    queuedAt: "14:35:18",
-    priority: "normal",
-    estimatedDuration: "1m 15s",
-  },
-  {
-    id: "act-003",
-    name: "Transform Dataset",
-    type: "TransformData",
-    workflowId: "wf-003",
-    workflowName: "ETL Pipeline",
-    status: "pending",
-    queuedAt: "14:35:15",
-    priority: "normal",
-    estimatedDuration: "3m 45s",
-  },
-  {
-    id: "act-004",
-    name: "Store Results",
-    type: "StoreResults",
-    workflowId: "wf-001",
-    workflowName: "Data Processing Workflow",
-    status: "pending",
-    queuedAt: "14:35:10",
-    priority: "low",
-    estimatedDuration: "45s",
-  },
-];
+import { useTaskQueue, useQueueActivities } from "@/domain/task/hooks";
 
 export default function QueueDetailPage({
   params,
@@ -73,6 +16,8 @@ export default function QueueDetailPage({
   params: { queueId: string };
 }) {
   const router = useRouter();
+  const { data: queueData, isLoading: queueLoading } = useTaskQueue(params.queueId);
+  const { data: activities, isLoading: activitiesLoading } = useQueueActivities(params.queueId);
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,16 +40,27 @@ export default function QueueDetailPage({
           <span className="text-sm">{params.queueId}</span>
         </div>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">{queueData.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="font-mono">{queueData.id}</span>
-            <span>•</span>
-            <span>Created {queueData.createdAt}</span>
+        {queueLoading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">{queueData?.name}</h1>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="font-mono">{queueData?.id}</span>
+              <span>•</span>
+              <span>Created {queueData?.createdAt}</span>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="grid gap-6 md:grid-cols-4">
+        {queueLoading ? (
+          <div className="grid gap-6 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-4">
           <Card className="p-6">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-muted-foreground">
@@ -113,10 +69,10 @@ export default function QueueDetailPage({
               <Activity className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold font-mono">
-              {queueData.pendingActivities}
+              {queueData?.pendingActivities}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Current depth: {queueData.currentDepth}
+              Current depth: {queueData?.currentDepth}
             </div>
           </Card>
 
@@ -128,7 +84,7 @@ export default function QueueDetailPage({
               <Users className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold font-mono">
-              {queueData.activeWorkers}
+              {queueData?.activeWorkers}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Processing tasks
@@ -141,10 +97,10 @@ export default function QueueDetailPage({
               <Clock className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold font-mono">
-              {queueData.averageWaitTime}
+              {queueData?.averageWaitTime}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Oldest: {queueData.oldestPendingActivity}
+              Oldest: {queueData?.oldestPendingActivity}
             </div>
           </Card>
 
@@ -154,13 +110,14 @@ export default function QueueDetailPage({
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold font-mono">
-              {queueData.throughput}
+              {queueData?.throughput}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Tasks per hour
             </div>
           </Card>
         </div>
+        )}
 
         <div className="space-y-4">
           <div>
@@ -170,10 +127,17 @@ export default function QueueDetailPage({
             </p>
           </div>
 
-          <div className="border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <tbody>
-                {mockActivities.map((activity) => (
+          {activitiesLoading ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <tbody>
+                  {activities?.map((activity) => (
                   <tr
                     key={activity.id}
                     className="border-b border-border last:border-b-0 hover:bg-[#1E1F22FF] transition-colors cursor-pointer"
@@ -253,10 +217,11 @@ export default function QueueDetailPage({
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
     </div>
