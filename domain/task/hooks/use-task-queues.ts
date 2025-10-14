@@ -12,10 +12,15 @@ export interface TaskQueue {
 }
 
 async function fetchTaskQueues(): Promise<TaskQueue[]> {
+  // TODO: Replace with actual API call to GET /api/v1/queues
+  // const response = await fetch(`/api/v1/queues`)
+  // const data = await response.json()
+  // return data.items
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  // Mock data - replace with actual API call
+  // MOCK DATA - Replace with actual API response
   return [
     {
       id: "queue-001",

@@ -27,11 +27,14 @@ export interface WorkerDetails {
 }
 
 async function fetchWorker(workerId: string): Promise<WorkerDetails> {
+  // TODO: Replace with actual API call to GET /api/v1/workers/{workerId}
+  // const response = await fetch(`/api/v1/workers/${workerId}`)
+  // const apiResponse = await response.json()
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800))
 
-  // Mock data - replace with actual API call
-  // TODO: Replace with: const response = await fetch(`/api/workers/${workerId}`)
+  // MOCK DATA - Replace with actual API response
   return {
     id: workerId,
     status: "active",

@@ -13,10 +13,16 @@ export interface QueueActivity {
 }
 
 async function fetchQueueActivities(queueId: string): Promise<QueueActivity[]> {
+  // TODO: Replace with actual API call to GET /api/v1/queues/{queueId}/activities
+  // This endpoint is MISSING in current API design - needs to be implemented
+  // const response = await fetch(`/api/v1/queues/${queueId}/activities?page=1&pageSize=20`)
+  // const data = await response.json()
+  // return data.items
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 900))
 
-  // Mock data - replace with actual API call
+  // MOCK DATA - Replace with actual API response
   return [
     {
       id: "act-001",

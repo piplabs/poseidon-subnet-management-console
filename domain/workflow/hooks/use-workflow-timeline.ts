@@ -9,11 +9,14 @@ export interface TimelineEvent {
 }
 
 async function fetchWorkflowTimeline(workflowId: string): Promise<TimelineEvent[]> {
+  // TODO: Replace with actual API call to GET /api/v1/workflows/{workflowId}/events
+  // const response = await fetch(`/api/v1/workflows/${workflowId}/events`)
+  // const apiResponse = await response.json()
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 700))
 
-  // Mock data - replace with actual API call
-  // TODO: Replace with: const response = await fetch(`/api/workflows/${workflowId}/timeline`)
+  // MOCK DATA - Replace with actual API response
   const now = Date.now()
   return [
     {

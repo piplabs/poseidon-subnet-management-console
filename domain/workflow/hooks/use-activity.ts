@@ -16,11 +16,14 @@ export interface ActivityDetails {
 }
 
 async function fetchActivity(activityId: string): Promise<ActivityDetails> {
+  // TODO: Replace with actual API call to GET /api/v1/activities/{activityId}
+  // const response = await fetch(`/api/v1/activities/${activityId}`)
+  // const apiResponse = await response.json()
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 750))
 
-  // Mock data - replace with actual API call
-  // TODO: Replace with: const response = await fetch(`/api/activities/${activityId}`)
+  // MOCK DATA - Replace with actual API response
   return {
     id: activityId,
     name: "ValidatePayment",

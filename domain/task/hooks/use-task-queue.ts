@@ -13,10 +13,15 @@ export interface TaskQueueDetails {
 }
 
 async function fetchTaskQueue(queueId: string): Promise<TaskQueueDetails> {
+  // TODO: Replace with actual API call to GET /api/v1/queues/{queueId}
+  // This endpoint is MISSING in current API design - needs to be implemented
+  // const response = await fetch(`/api/v1/queues/${queueId}`)
+  // return await response.json()
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800))
 
-  // Mock data - replace with actual API call
+  // MOCK DATA - Replace with actual API response
   return {
     id: queueId,
     name: "chutes-default",

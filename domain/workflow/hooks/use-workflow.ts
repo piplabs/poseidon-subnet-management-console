@@ -26,56 +26,162 @@ export interface WorkflowDetails {
   workers: WorkflowWorker[]
 }
 
+// API Response from GET /api/v1/workflows/{workflowId}
+interface ApiWorkflowDetail {
+  workflowId: string
+  type: string
+  definition: string
+  creator: string
+  status: "Running" | "Completed" | "Failed" | "Terminated"
+  createdAt: string
+  terminatedAt: string | null
+  terminationReason: string
+  durationSec: number
+  currentStep: number
+  totalSteps: number
+  stateHistory: Array<{
+    from: string
+    to: string
+    timestamp: string
+  }>
+  activities: Array<{
+    activityId: string
+    stepIndex: number
+    status: "Completed" | "Running" | "Pending" | "Failed"
+    startedAt: string
+    completedAt: string | null
+  }>
+  workers: Array<{
+    worker: string
+    lastHeartbeatAt: string
+  }>
+}
+
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}m ${secs}s`
+}
+
+function normalizeStatus(apiStatus: string): WorkflowDetails["status"] {
+  switch (apiStatus) {
+    case "Running":
+      return "running"
+    case "Completed":
+      return "succeeded"
+    case "Failed":
+      return "failed"
+    case "Terminated":
+      return "cancelled"
+    default:
+      return "pending"
+  }
+}
+
+function normalizeActivityStatus(apiStatus: string): WorkflowActivity["status"] {
+  switch (apiStatus) {
+    case "Completed":
+      return "completed"
+    case "Running":
+      return "running"
+    case "Failed":
+      return "failed"
+    default:
+      return "pending"
+  }
+}
+
 async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
+  // TODO: Replace with actual API call to GET /api/v1/workflows/{workflowId}
+  // const response = await fetch(`/api/v1/workflows/${workflowId}`)
+  // const apiResponse = await response.json()
+
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800))
 
-  // Mock data - replace with actual API call
-  // TODO: Replace with: const response = await fetch(`/api/workflows/${workflowId}`)
-  return {
-    id: workflowId,
-    type: "Payment Processing",
-    status: "running",
-    startTime: "14:30:15",
-    duration: "5m 23s",
-    user: "system",
+  // MOCK DATA - Replace with actual API response
+  const apiResponse: ApiWorkflowDetail = {
+    workflowId: "0xabc123",
+    type: "VideoTranscode",
+    definition: "0xdef456",
+    creator: "0xuser123",
+    status: "Completed",
+    createdAt: "2025-10-10T04:21:00Z",
+    terminatedAt: "2025-10-10T04:28:42Z",
+    terminationReason: "Success",
+    durationSec: 462,
+    currentStep: 8,
+    totalSteps: 8,
+    stateHistory: [
+      {
+        from: "Initialized",
+        to: "Running",
+        timestamp: "2025-10-10T04:21:05Z",
+      },
+      {
+        from: "Running",
+        to: "Completed",
+        timestamp: "2025-10-10T04:28:42Z",
+      },
+    ],
     activities: [
       {
-        id: "act-001",
-        name: "ValidatePayment",
-        status: "completed",
-        duration: "1m 23s",
-        worker: "worker-001",
+        activityId: "0xactivity789",
+        stepIndex: 1,
+        status: "Completed",
+        startedAt: "2025-10-10T04:22:01Z",
+        completedAt: "2025-10-10T04:22:35Z",
       },
       {
-        id: "act-002",
-        name: "ProcessTransaction",
-        status: "running",
-        duration: "2m 15s",
-        worker: "worker-002",
+        activityId: "0xactivity790",
+        stepIndex: 2,
+        status: "Completed",
+        startedAt: "2025-10-10T04:22:40Z",
+        completedAt: "2025-10-10T04:25:15Z",
       },
       {
-        id: "act-003",
-        name: "SendConfirmation",
-        status: "pending",
-        duration: "-",
-        worker: "-",
+        activityId: "0xactivity791",
+        stepIndex: 3,
+        status: "Completed",
+        startedAt: "2025-10-10T04:25:20Z",
+        completedAt: "2025-10-10T04:28:40Z",
       },
     ],
     workers: [
       {
-        id: "worker-001",
-        status: "active",
-        currentActivity: "ProcessTransaction",
-        tasksCompleted: 145,
-      },
-      {
-        id: "worker-002",
-        status: "active",
-        currentActivity: "ValidatePayment",
-        tasksCompleted: 132,
+        worker: "0xworker999",
+        lastHeartbeatAt: "2025-10-10T04:25:00Z",
       },
     ],
+  }
+
+  // Transform to FE format
+  return {
+    id: apiResponse.workflowId,
+    type: apiResponse.type,
+    status: normalizeStatus(apiResponse.status),
+    startTime: new Date(apiResponse.createdAt).toLocaleTimeString(),
+    duration: formatDuration(apiResponse.durationSec),
+    user: apiResponse.creator.substring(0, 10) + "...",
+    activities: apiResponse.activities.map((activity) => {
+      const startTime = new Date(activity.startedAt).getTime()
+      const endTime = activity.completedAt ? new Date(activity.completedAt).getTime() : Date.now()
+      const durationSec = Math.floor((endTime - startTime) / 1000)
+
+      return {
+        id: activity.activityId,
+        name: `Activity-${activity.stepIndex}`,
+        status: normalizeActivityStatus(activity.status),
+        duration: formatDuration(durationSec),
+        worker: apiResponse.workers[0]?.worker || "-",
+      }
+    }),
+    workers: apiResponse.workers.map((worker) => ({
+      id: worker.worker,
+      status: "active" as const,
+      currentActivity: apiResponse.activities[0]?.activityId || "-",
+      tasksCompleted: apiResponse.activities.length,
+    })),
   }
 }
 

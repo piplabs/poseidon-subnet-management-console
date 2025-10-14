@@ -2,16 +2,14 @@
 
 import { Header } from "@/common/components/layout/header"
 import { MetricCard } from "@/domain/dashboard/components/metric-card"
-import { ChartCard } from "@/domain/dashboard/components/chart-card"
 import { WorkflowTable } from "@/domain/workflow/components/workflow-table"
 import { TaskQueueTable } from "@/domain/task/components/task-queue-table"
 import { Skeleton } from "@/common/components/skeleton"
 import { Users, Coins, GitBranch, TrendingUp, Clock, Activity } from "lucide-react"
-import { useDashboardMetrics, useWorkflowTimeSeries } from "@/domain/dashboard/hooks"
+import { useDashboardMetrics } from "@/domain/dashboard/hooks"
 
 export default function HomePage() {
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
-  const { data: workflowData, isLoading: chartLoading } = useWorkflowTimeSeries()
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,20 +68,6 @@ export default function HomePage() {
               icon={Activity}
             />
           </div>
-        )}
-
-        {/* Workflow Executions Chart */}
-        {chartLoading ? (
-          <Skeleton className="h-96 w-full" />
-        ) : (
-          <ChartCard
-            title="Workflow Executions"
-            subtitle="Number of workflows per hour"
-            data={workflowData || []}
-            dataKey="value"
-            type="area"
-            color="hsl(210, 100%, 60%)"
-          />
         )}
 
         {/* Workflow Table */}
