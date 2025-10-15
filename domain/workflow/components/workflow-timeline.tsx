@@ -3,8 +3,24 @@
 import { Button } from "@/common/components/button";
 import { Skeleton } from "@/common/components/skeleton";
 import { useWorkflowTimeline } from "@/domain/workflow/hooks";
-import { Minimize2, Filter } from "lucide-react";
-import { useState } from "react";
+import {
+  Minimize2,
+  Filter,
+  CheckCircle2,
+  Calendar,
+  User,
+  Expand,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/common/components/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -17,14 +33,46 @@ interface WorkflowTimelineProps {
 }
 
 export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
-  console.log(workflowId);
-  const [viewMode] = useState<"minimized" | "expanded">("minimized");
+  const [viewMode, setViewMode] = useState<"minimized" | "expanded">(
+    "minimized"
+  );
   const [zoomLevel, setZoomLevel] = useState(100); // Starting interval in ms
+  const [isDraggingXAxis, setIsDraggingXAxis] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartZoom, setDragStartZoom] = useState(100);
+
   const {
     data: timelineEvents,
     isLoading,
     error,
   } = useWorkflowTimeline(workflowId);
+
+  // Add global mouse move and mouse up handlers for smoother dragging
+  useEffect(() => {
+    if (!isDraggingXAxis) return;
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartX;
+      const zoomChange = deltaX / 3;
+      let newZoom = dragStartZoom + zoomChange;
+      newZoom = Math.max(10, Math.min(1000, newZoom));
+      setZoomLevel(newZoom);
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDraggingXAxis(false);
+      // Round to nearest 10ms for clean final value
+      setZoomLevel((prev) => Math.round(prev / 10) * 10);
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [isDraggingXAxis, dragStartX, dragStartZoom]);
 
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
@@ -93,35 +141,71 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
     : formatTimestamp(minStartTime + maxRelativeTime);
 
   // Calculate timeline dimensions with dynamic zoom
-  // Scale based on zoom level: at 100ms zoom, 1ms = 2px; at 10ms zoom, 1ms = 20px
-  const pixelsPerMs = 200 / zoomLevel; // pixels per millisecond
+  // The zoom level determines how many pixels per millisecond
+  // Lower zoomLevel = more zoomed in = more pixels per ms
+  const pixelsPerMs = 500 / zoomLevel; // at 100ms zoom: 5px per ms, at 10ms zoom: 50px per ms
 
-  // Round up to nearest interval to ensure all events fit
-  const markerInterval = zoomLevel; // Dynamic based on zoom
-  const timelineWidth =
-    Math.ceil(maxRelativeTime / markerInterval) * markerInterval;
-  const timelineWidthPx = timelineWidth * pixelsPerMs;
+  // Calculate actual timeline width in pixels based on data
+  const timelineWidthPx = maxRelativeTime * pixelsPerMs;
 
-  // Generate time markers with fixed intervals
-  const markerCount = Math.ceil(timelineWidth / markerInterval);
+  // Generate time markers with appropriate intervals based on zoom
+  // Adjust marker interval to keep reasonable spacing
+  let markerInterval = Math.max(10, Math.round(zoomLevel / 10) * 10); // Start with rounded zoom level
+  const minMarkerSpacingPx = 80; // Minimum pixels between markers
+  let currentMarkerSpacing = markerInterval * pixelsPerMs;
+
+  // If markers are too close, increase interval (by clean multiples)
+  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < 1000) {
+    markerInterval =
+      markerInterval < 100 ? markerInterval + 10 : markerInterval + 100;
+    currentMarkerSpacing = markerInterval * pixelsPerMs;
+  }
+
+  // If markers are too far, decrease interval (by clean multiples)
+  while (currentMarkerSpacing > minMarkerSpacingPx * 3 && markerInterval > 10) {
+    markerInterval =
+      markerInterval <= 100 ? markerInterval - 10 : markerInterval - 100;
+    currentMarkerSpacing = markerInterval * pixelsPerMs;
+    if (markerInterval < 10) {
+      markerInterval = 10;
+      break;
+    }
+  }
+
+  const markerCount = Math.ceil(maxRelativeTime / markerInterval);
   const timeMarkers = Array.from(
     { length: markerCount + 1 },
     (_, i) => i * markerInterval
   );
 
-  // Handle wheel event for zoom
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (e.deltaY === 0) return;
-    e.preventDefault();
-
-    setZoomLevel((prev) => {
-      // Zoom in (scroll down) = decrease interval (more detailed)
-      // Zoom out (scroll up) = increase interval (less detailed)
-      const delta = e.deltaY > 0 ? -10 : 10;
-      const newZoom = Math.max(10, Math.min(1000, prev + delta));
-      return newZoom;
-    });
+  // X-axis drag zoom handlers
+  const handleXAxisMouseDown = (e: React.MouseEvent) => {
+    setIsDraggingXAxis(true);
+    setDragStartX(e.clientX);
+    setDragStartZoom(zoomLevel);
   };
+
+  const handleXAxisMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingXAxis) return;
+
+    const deltaX = e.clientX - dragStartX;
+    // Drag right = zoom out (increase interval), drag left = zoom in (decrease interval)
+    const zoomChange = deltaX / 3; // 3px drag = 1ms change (smooth)
+    let newZoom = dragStartZoom + zoomChange;
+
+    // Clamp to range (don't round during drag for smoothness)
+    newZoom = Math.max(10, Math.min(1000, newZoom));
+
+    setZoomLevel(newZoom);
+  };
+
+  const handleXAxisMouseUp = () => {
+    setIsDraggingXAxis(false);
+  };
+
+  // Dynamic height based on view mode
+  const timelineHeight = viewMode === "expanded" ? "h-96" : "h-48";
+  const timelineHeightPx = viewMode === "expanded" ? 384 : 192;
 
   return (
     <TooltipProvider>
@@ -131,25 +215,122 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
             variant="outline"
             size="sm"
             className="gap-2 h-8 text-xs bg-transparent"
+            onClick={() =>
+              setViewMode(viewMode === "minimized" ? "expanded" : "minimized")
+            }
           >
-            <Minimize2 className="h-3 w-3" />
-            Minimized
+            {viewMode === "expanded" ? (
+              <Minimize2 className="h-3 w-3" />
+            ) : (
+              <Expand className="h-3 w-3" />
+            )}
+            {viewMode === "minimized" ? "Expanded" : "Minimized"}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 h-8 text-xs bg-transparent"
-          >
-            <Filter className="h-3 w-3" />
-            Filter
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 h-8 text-xs bg-transparent"
+              >
+                <Filter className="h-3 w-3" />
+                Filter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {/* Status submenu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <span>Status</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56">
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-orange-500" />
+                      <span>Backlog</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
+                      <span>Proposal</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
+                      <span>Design Ready</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
+                      <span>Project Kickoff</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500" />
+                      <span>In Progress: on track</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                      <span>In Progress: at risk</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-red-500" />
+                      <span>In Progress: off track</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Maintenance</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                      <span>Completed</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-gray-500" />
+                      <span>Paused</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-gray-500" />
+                      <span>Canceled</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Date Range */}
+              <DropdownMenuItem>
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>Date Range</span>
+              </DropdownMenuItem>
+
+              {/* Author */}
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Author</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Timeline Container */}
-        <div
-          className="relative bg-card border border-border rounded-lg p-4 overflow-x-auto"
-          onWheel={handleWheel}
-        >
+        <div className="relative bg-card border border-border rounded-lg p-4 overflow-x-auto">
           {/* Timeline boundaries */}
           <div className="flex items-center justify-between mb-2 text-[10px] font-mono text-muted-foreground">
             <span className="sticky left-0 bg-card/95 backdrop-blur-sm px-1 z-20">
@@ -161,7 +342,9 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
           </div>
 
           {/* Timeline visualization - Fixed background wrapper */}
-          <div className="relative h-32 bg-background/50 rounded border border-border/50 overflow-hidden">
+          <div
+            className={`relative ${timelineHeight} bg-background/50 rounded border border-border/50 overflow-hidden`}
+          >
             {/* Scrollable timeline content */}
             <div
               className="relative h-full overflow-visible"
@@ -173,12 +356,12 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               {/* Grid lines - positioned absolutely based on time values */}
               <div className="absolute inset-0">
                 {timeMarkers.map((time, i) => {
-                  const position = (time / timelineWidth) * 100;
+                  const positionPx = time * pixelsPerMs;
                   return (
                     <div
                       key={i}
                       className="absolute top-0 bottom-0 border-r border-border/30"
-                      style={{ left: `${position}%` }}
+                      style={{ left: `${positionPx}px` }}
                     />
                   );
                 })}
@@ -227,7 +410,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                   const totalHeight =
                     eventsWithRelativeTime.length * eventHeight +
                     (eventsWithRelativeTime.length - 1) * gap;
-                  const containerHeight = 128; // h-32 = 128px
+                  const containerHeight = timelineHeightPx; // Dynamic based on view mode
                   const startY = (containerHeight - totalHeight) / 2;
                   const itemGap = 28;
                   const topPosition = startY + index * (eventHeight + itemGap);
@@ -283,21 +466,24 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
             </div>
           </div>
 
-          {/* Time markers */}
+          {/* Time markers - X-axis with drag zoom */}
           <div
-            className="relative mt-2 text-[10px] font-mono text-muted-foreground"
+            className={`relative mt-2 text-[10px] hover:cursor-ew-resize h-4 font-mono text-muted-foreground select-none`}
             style={{
               width: `${timelineWidthPx}px`,
               minWidth: `${timelineWidthPx}px`,
             }}
+            onMouseDown={handleXAxisMouseDown}
+            onMouseMove={handleXAxisMouseMove}
+            onMouseUp={handleXAxisMouseUp}
           >
             {timeMarkers.map((time, i) => {
-              const position = (time / timelineWidth) * 100;
+              const positionPx = time * pixelsPerMs;
               return (
                 <span
                   key={i}
                   className="absolute -translate-x-1/2"
-                  style={{ left: `${position}%` }}
+                  style={{ left: `${positionPx}px` }}
                 >
                   {time}ms
                 </span>

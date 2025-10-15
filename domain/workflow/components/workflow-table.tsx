@@ -1,117 +1,33 @@
 "use client"
-import { Button } from "@/common/components/button"
-import { Input } from "@/common/components/input"
 import { Skeleton } from "@/common/components/skeleton"
 import { useWorkflows } from "@/domain/workflow/hooks"
-import { Search, Calendar, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
-export function WorkflowTable({
-  subnetId,
-  showViewAll = true,
-  showTitle = true,
-}: { subnetId?: string; showViewAll?: boolean; showTitle?: boolean }) {
-  const router = useRouter()
+export function WorkflowTable({ subnetId }: { subnetId?: string }) {
   const { data: workflows, isLoading, error } = useWorkflows(subnetId)
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {showTitle && (
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Workflows</h2>
-              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
-            </div>
-          </div>
-        )}
-        <Skeleton className="h-96 w-full" />
-      </div>
-    )
+    return <Skeleton className="h-96 w-full" />
   }
 
   if (error) {
     return (
-      <div className="space-y-4">
-        {showTitle && (
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Workflows</h2>
-              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
-            </div>
-          </div>
-        )}
-        <div className="border border-border rounded-lg p-6">
-          <div className="text-destructive">Error loading workflows: {error.message}</div>
-        </div>
+      <div className="border border-border rounded-lg p-6">
+        <div className="text-destructive">Error loading workflows: {error.message}</div>
       </div>
     )
   }
 
   if (!workflows || workflows.length === 0) {
     return (
-      <div className="space-y-4">
-        {showTitle && (
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Workflows</h2>
-              <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
-            </div>
-          </div>
-        )}
-        <div className="border border-border rounded-lg p-6">
-          <div className="text-muted-foreground">No workflows found</div>
-        </div>
+      <div className="border border-border rounded-lg p-6">
+        <div className="text-muted-foreground">No workflows found</div>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      {showTitle && (
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Workflows</h2>
-            <p className="text-sm text-muted-foreground mt-1">All workflows from Chutes Subnet</p>
-          </div>
-          {showViewAll && (
-            <Button variant="ghost" className="gap-2" onClick={() => router.push("/workflows")}>
-              View All
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      )}
-
-      {!showTitle && showViewAll && (
-        <div className="flex justify-end">
-          <Button variant="ghost" className="gap-2" onClick={() => router.push("/workflows")}>
-            View All
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      <div className="flex items-center gap-3">
-        <Button variant="outline" className="gap-2 bg-transparent">
-          <Calendar className="h-4 w-4" />
-          Select Date Range
-        </Button>
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="All Authors..." className="pl-9" />
-        </div>
-        <Button variant="outline" className="gap-2 bg-transparent">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
-            <div className="w-2 h-2 rounded-full bg-red-500" />
-          </div>
-          Status 5/6
-        </Button>
-      </div>
-
       <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <tbody>
