@@ -18,19 +18,20 @@ async function fetchWorkflowTimeline(workflowId: string): Promise<TimelineEvent[
 
   // MOCK DATA - Replace with actual API response
   const now = Date.now()
+  const workflowStart = now - 500 // Workflow started 500ms ago
   return [
     {
       id: "event-001",
       name: "ValidatePayment",
-      startTime: now - 300000,
-      endTime: now - 240000,
+      startTime: workflowStart,
+      endTime: workflowStart + 125, // 125ms duration
       status: "success",
     },
     {
       id: "event-002",
       name: "ProcessTransaction",
-      startTime: now - 240000,
-      endTime: now,
+      startTime: workflowStart + 125,
+      endTime: workflowStart + 450, // 325ms duration
       status: "running",
     },
     {
