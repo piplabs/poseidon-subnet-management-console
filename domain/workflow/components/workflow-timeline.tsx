@@ -118,11 +118,17 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   });
 
   // Find the maximum relative time for timeline scale
-  const maxRelativeTime = Math.max(
+  // For pending events, assume they'll take 100ms and add to the timeline
+  const completedMaxTime = Math.max(
     ...eventsWithRelativeTime
       .filter((e) => !e.isPending)
-      .map((e) => e.relativeEnd)
+      .map((e) => e.relativeEnd),
+    0 // Fallback if no completed events
   );
+  const hasPendingEvents = eventsWithRelativeTime.some((e) => e.isPending);
+  const maxRelativeTime = hasPendingEvents
+    ? completedMaxTime + 100 // Add 100ms for pending events
+    : completedMaxTime;
 
   // Format absolute timestamp to readable format
   const formatTimestamp = (timestamp: number) => {
@@ -243,7 +249,6 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
             ) : (
               <Expand className="h-3 w-3" />
             )}
-            {viewMode === "minimized" ? "Expanded" : "Minimized"}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -253,7 +258,6 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                 className="gap-2 h-8 text-xs bg-transparent"
               >
                 <Filter className="h-3 w-3" />
-                Filter
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -349,7 +353,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
         </div>
 
         {/* Timeline Container */}
-        <div className="relative bg-card border border-border rounded-lg p-4 overflow-x-auto">
+        <div className="relative bg-card border border-border rounded-lg p-4">
           {/* Timeline boundaries */}
           <div className="flex items-center justify-between mb-2 text-[10px] font-mono text-muted-foreground">
             <span className="sticky left-0 bg-card/95 backdrop-blur-sm px-1 z-20">
@@ -360,13 +364,10 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
             </span>
           </div>
 
-          {/* Timeline visualization - Fixed background wrapper */}
-          <div
-            className={`relative ${timelineHeight} bg-background/50 rounded border border-border/50 overflow-hidden`}
-          >
-            {/* Scrollable timeline content */}
+          {/* Timeline visualization - Scrollable wrapper */}
+          <div className="overflow-x-auto overflow-y-visible">
             <div
-              className="relative h-full overflow-visible"
+              className={`relative ${timelineHeight} bg-background/50 rounded border border-border/50`}
               style={{
                 width: `${timelineWidthPx}px`,
                 minWidth: `${timelineWidthPx}px`,
@@ -414,11 +415,11 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
 
                   // Calculate position in pixels
                   const leftPx = isPending
-                    ? maxRelativeTime * pixelsPerMs + 10 // Just after the last event
+                    ? completedMaxTime * pixelsPerMs + 10 // Just after the last completed event
                     : event.relativeStart * pixelsPerMs;
 
                   const widthPx = isPending
-                    ? 60 // Small fixed width for pending (60px)
+                    ? 100 * pixelsPerMs // Pending events: 100ms width
                     : (event.relativeEnd - event.relativeStart) * pixelsPerMs;
 
                   const duration = event.relativeEnd - event.relativeStart;
@@ -483,31 +484,31 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                 })}
               </div>
             </div>
-          </div>
 
-          {/* Time markers - X-axis with drag zoom */}
-          <div
-            className={`relative mt-2 text-[10px] hover:cursor-ew-resize h-4 font-mono text-muted-foreground select-none`}
-            style={{
-              width: `${timelineWidthPx}px`,
-              minWidth: `${timelineWidthPx}px`,
-            }}
-            onMouseDown={handleXAxisMouseDown}
-            onMouseMove={handleXAxisMouseMove}
-            onMouseUp={handleXAxisMouseUp}
-          >
-            {timeMarkers.map((time, i) => {
-              const positionPx = time * pixelsPerMs;
-              return (
-                <span
-                  key={i}
-                  className="absolute -translate-x-1/2"
-                  style={{ left: `${positionPx}px` }}
-                >
-                  {time}ms
-                </span>
-              );
-            })}
+            {/* Time markers - X-axis with drag zoom */}
+            <div
+              className={`relative mt-2 text-[10px] hover:cursor-ew-resize h-4 font-mono text-muted-foreground select-none`}
+              style={{
+                width: `${timelineWidthPx}px`,
+                minWidth: `${timelineWidthPx}px`,
+              }}
+              onMouseDown={handleXAxisMouseDown}
+              onMouseMove={handleXAxisMouseMove}
+              onMouseUp={handleXAxisMouseUp}
+            >
+              {timeMarkers.map((time, i) => {
+                const positionPx = i === 0 ? 16 : time * pixelsPerMs;
+                return (
+                  <span
+                    key={i}
+                    className="absolute -translate-x-1/2"
+                    style={{ left: `${positionPx}px` }}
+                  >
+                    {time}ms
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
