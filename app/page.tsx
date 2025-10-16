@@ -1,76 +1,65 @@
-"use client"
+"use client";
 
-import { MetricCard } from "@/domain/dashboard/components/metric-card"
-import { WorkflowTable } from "@/domain/workflow/components/workflow-table"
-import { TaskQueueTable } from "@/domain/task/components/task-queue-table"
-import { Skeleton } from "@/common/components/skeleton"
-import { Users, Coins, GitBranch, TrendingUp, Clock, Activity } from "lucide-react"
-import { useDashboardMetrics } from "@/domain/dashboard/hooks"
+import { ObservabilityCard } from "@/domain/dashboard/components/observability-card";
+import { MetricsCard } from "@/domain/dashboard/components/metrics-card";
+import { WorkflowsCard } from "@/domain/dashboard/components/workflows-card";
+import { MonitoringTabs } from "@/domain/dashboard/components/monitoring-tabs";
+import { Skeleton } from "@/common/components/skeleton";
+import { useDashboardMetrics } from "@/domain/dashboard/hooks";
 
 export default function HomePage() {
-  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
+  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
 
   return (
-      <main className="p-6 space-y-6">
-        {/* Dashboard Header */}
+    <main className="p-6 space-y-6">
+      {/* Dashboard Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Workflow execution metrics and system overview
+        </p>
+      </div>
+
+      {/* Metrics Grid */}
+      {metricsLoading ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-64 w-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <ObservabilityCard
+            workflowSuccessRate={metrics?.workflowSuccessRateNumeric || 0}
+            activitySuccessRate={metrics?.activitySuccessRateNumeric || 0}
+          />
+          <MetricsCard
+            activeWorkers={metrics?.activeWorkers || 0}
+            idleWorkers={metrics?.idleWorkers || 0}
+            totalStaked={metrics?.totalStaked || "0"}
+            stakingCurrency={metrics?.stakingCurrency || "PSDN"}
+          />
+          <WorkflowsCard
+            totalWorkflows={
+              metrics?.totalWorkflows || {
+                started: 0,
+                active: 0,
+                completed: 0,
+                failed: 0,
+              }
+            }
+          />
+        </div>
+      )}
+
+      {/* Monitoring Section */}
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Workflow execution metrics and system overview</p>
+          <h2 className="text-2xl font-semibold">Monitoring</h2>
         </div>
 
-        {/* Metrics Grid */}
-        {metricsLoading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <MetricCard
-              title="Active Workers"
-              value={metrics?.activeWorkers || 0}
-              subtitle={`${metrics?.idleWorkers || 0} idle`}
-              icon={Users}
-            />
-            <MetricCard
-              title="Total Staked"
-              value={metrics?.totalStaked || "0"}
-              subtitle={metrics?.stakingCurrency || "ETH"}
-              icon={Coins}
-            />
-            <MetricCard
-              title="Workflow Runs"
-              value={metrics?.workflowRuns || 0}
-              subtitle="Last 24 hours"
-              icon={GitBranch}
-            />
-            <MetricCard
-              title="Workflow Success Rate"
-              value={metrics?.workflowSuccessRate || "0%"}
-              subtitle="Last 7 days"
-              icon={TrendingUp}
-            />
-            <MetricCard
-              title="Avg Completion Time"
-              value={metrics?.avgCompletionTime || "0m"}
-              subtitle="End-to-end duration"
-              icon={Clock}
-            />
-            <MetricCard
-              title="Activity Success Rate"
-              value={metrics?.activitySuccessRate || "0%"}
-              subtitle="Individual activities"
-              icon={Activity}
-            />
-          </div>
-        )}
-
-        {/* Workflow Table */}
-        <WorkflowTable />
-
-        {/* Task Queue Table */}
-        <TaskQueueTable />
-      </main>
-  )
+        <MonitoringTabs />
+      </div>
+    </main>
+  );
 }

@@ -1,78 +1,103 @@
 import { useQuery } from "@tanstack/react-query"
+import type { QueueListResponse } from "@/lib/api/types"
+import {
+  formatRelativeTime,
+  formatWaitTime,
+  formatThroughput,
+} from "@/lib/api/transforms"
 
 export interface TaskQueue {
   id: string
-  name: string
+  partitionCount: number
   pendingActivities: number
-  oldestPendingActivity: string
+  oldestPendingSince: string
+  avgWaitSec: number
+  throughputPerMin: number
+  createdAt: string
+  // Display-only fields (formatted)
+  name: string
+  oldestPendingRelative: string
   averageWaitTime: string
   throughput: string
-  currentDepth: number
-  createdAt: string
 }
 
 async function fetchTaskQueues(): Promise<TaskQueue[]> {
   // TODO: Replace with actual API call to GET /api/v1/queues
-  // const response = await fetch(`/api/v1/queues`)
-  // const data = await response.json()
-  // return data.items
+  // const response = await fetch(`/api/v1/queues?page=1&pageSize=50`)
+  // const apiResponse: QueueListResponse = await response.json()
 
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
   // MOCK DATA - Replace with actual API response
-  return [
-    {
-      id: "queue-001",
-      name: "chutes-default",
-      pendingActivities: 15,
-      oldestPendingActivity: "2 minutes ago",
-      averageWaitTime: "45s",
-      throughput: "12/min",
-      currentDepth: 15,
-      createdAt: "2024-01-15 10:30:00",
-    },
-    {
-      id: "queue-002",
-      name: "chutes-priority",
-      pendingActivities: 3,
-      oldestPendingActivity: "30 seconds ago",
-      averageWaitTime: "15s",
-      throughput: "25/min",
-      currentDepth: 3,
-      createdAt: "2024-01-15 11:00:00",
-    },
-    {
-      id: "queue-003",
-      name: "chutes-batch",
-      pendingActivities: 45,
-      oldestPendingActivity: "5 minutes ago",
-      averageWaitTime: "2m 30s",
-      throughput: "8/min",
-      currentDepth: 45,
-      createdAt: "2024-01-15 09:15:00",
-    },
-    {
-      id: "queue-004",
-      name: "chutes-workflow",
-      pendingActivities: 8,
-      oldestPendingActivity: "1 minute ago",
-      averageWaitTime: "30s",
-      throughput: "15/min",
-      currentDepth: 8,
-      createdAt: "2024-01-15 12:00:00",
-    },
-    {
-      id: "queue-005",
-      name: "chutes-async",
-      pendingActivities: 22,
-      oldestPendingActivity: "3 minutes ago",
-      averageWaitTime: "1m 15s",
-      throughput: "10/min",
-      currentDepth: 22,
-      createdAt: "2024-01-15 08:45:00",
-    },
-  ]
+  const apiResponse: QueueListResponse = {
+    items: [
+      {
+        queueId: "chutes-default",
+        partitionCount: 4,
+        pendingActivities: 15,
+        oldestPendingSince: "2025-10-16T10:34:00Z",
+        avgWaitSec: 45,
+        throughputPerMin: 12,
+        createdAt: "2025-10-15T10:30:00Z",
+      },
+      {
+        queueId: "chutes-priority",
+        partitionCount: 2,
+        pendingActivities: 3,
+        oldestPendingSince: "2025-10-16T10:35:30Z",
+        avgWaitSec: 15,
+        throughputPerMin: 25,
+        createdAt: "2025-10-15T11:00:00Z",
+      },
+      {
+        queueId: "chutes-batch",
+        partitionCount: 8,
+        pendingActivities: 45,
+        oldestPendingSince: "2025-10-16T10:31:00Z",
+        avgWaitSec: 150,
+        throughputPerMin: 8,
+        createdAt: "2025-10-15T09:15:00Z",
+      },
+      {
+        queueId: "chutes-workflow",
+        partitionCount: 4,
+        pendingActivities: 8,
+        oldestPendingSince: "2025-10-16T10:35:00Z",
+        avgWaitSec: 30,
+        throughputPerMin: 15,
+        createdAt: "2025-10-15T12:00:00Z",
+      },
+      {
+        queueId: "chutes-async",
+        partitionCount: 6,
+        pendingActivities: 22,
+        oldestPendingSince: "2025-10-16T10:33:00Z",
+        avgWaitSec: 75,
+        throughputPerMin: 10,
+        createdAt: "2025-10-15T08:45:00Z",
+      },
+    ],
+    page: 1,
+    pageSize: 50,
+    total: 5,
+  }
+
+  // Transform to FE format
+  return apiResponse.items.map((item) => ({
+    id: item.queueId,
+    partitionCount: item.partitionCount,
+    pendingActivities: item.pendingActivities,
+    oldestPendingSince: item.oldestPendingSince,
+    avgWaitSec: item.avgWaitSec,
+    throughputPerMin: item.throughputPerMin,
+    createdAt: item.createdAt,
+    // Display-only fields
+    name: item.queueId,
+    oldestPendingRelative: formatRelativeTime(item.oldestPendingSince),
+    averageWaitTime: formatWaitTime(item.avgWaitSec),
+    throughput: formatThroughput(item.throughputPerMin),
+  }))
 }
 
 export function useTaskQueues() {

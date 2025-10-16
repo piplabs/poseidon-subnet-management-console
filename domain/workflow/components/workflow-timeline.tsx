@@ -143,7 +143,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   // Calculate timeline dimensions with dynamic zoom
   // The zoom level determines how many pixels per millisecond
   // Lower zoomLevel = more zoomed in = more pixels per ms
-  const pixelsPerMs = 500 / zoomLevel; // at 100ms zoom: 5px per ms, at 10ms zoom: 50px per ms
+  const pixelsPerMs = 500 / zoomLevel; // at 100ms zoom: 50px per ms, at 10ms zoom: 500px per ms
 
   // Calculate actual timeline width in pixels based on data
   const timelineWidthPx = maxRelativeTime * pixelsPerMs;
@@ -151,20 +151,39 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   // Generate time markers with appropriate intervals based on zoom
   // Adjust marker interval to keep reasonable spacing
   let markerInterval = Math.max(10, Math.round(zoomLevel / 10) * 10); // Start with rounded zoom level
-  const minMarkerSpacingPx = 80; // Minimum pixels between markers
+  const minMarkerSpacingPx = 100; // Minimum pixels between markers (increased)
+  const maxMarkerSpacingPx = 200; // Maximum pixels between markers
   let currentMarkerSpacing = markerInterval * pixelsPerMs;
 
   // If markers are too close, increase interval (by clean multiples)
-  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < 1000) {
-    markerInterval =
-      markerInterval < 100 ? markerInterval + 10 : markerInterval + 100;
+  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < 10000) {
+    if (markerInterval < 10) {
+      markerInterval = 10;
+    } else if (markerInterval < 50) {
+      markerInterval += 10;
+    } else if (markerInterval < 100) {
+      markerInterval += 50;
+    } else if (markerInterval < 500) {
+      markerInterval += 100;
+    } else {
+      markerInterval += 500;
+    }
     currentMarkerSpacing = markerInterval * pixelsPerMs;
   }
 
   // If markers are too far, decrease interval (by clean multiples)
-  while (currentMarkerSpacing > minMarkerSpacingPx * 3 && markerInterval > 10) {
-    markerInterval =
-      markerInterval <= 100 ? markerInterval - 10 : markerInterval - 100;
+  while (currentMarkerSpacing > maxMarkerSpacingPx && markerInterval > 10) {
+    if (markerInterval <= 10) {
+      break;
+    } else if (markerInterval <= 50) {
+      markerInterval -= 10;
+    } else if (markerInterval <= 100) {
+      markerInterval -= 50;
+    } else if (markerInterval <= 500) {
+      markerInterval -= 100;
+    } else {
+      markerInterval -= 500;
+    }
     currentMarkerSpacing = markerInterval * pixelsPerMs;
     if (markerInterval < 10) {
       markerInterval = 10;

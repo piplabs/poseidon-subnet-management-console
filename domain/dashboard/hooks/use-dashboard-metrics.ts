@@ -7,8 +7,16 @@ export interface DashboardMetrics {
   stakingCurrency: string
   workflowRuns: number
   workflowSuccessRate: string
+  workflowSuccessRateNumeric: number
   avgCompletionTime: string
   activitySuccessRate: string
+  activitySuccessRateNumeric: number
+  totalWorkflows: {
+    started: number
+    active: number
+    completed: number
+    failed: number
+  }
 }
 
 // API Response from GET /api/v1/metrics/overview
@@ -62,11 +70,14 @@ async function fetchDashboardMetrics(subnetId?: string): Promise<DashboardMetric
     activeWorkers: apiResponse.activeWorkers,
     idleWorkers,
     totalStaked: `${(parseFloat(apiResponse.totalStaked) / 1000).toFixed(1)}K`,
-    stakingCurrency: "ETH",
+    stakingCurrency: "PSDN",
     workflowRuns: totalWorkflows,
     workflowSuccessRate: `${apiResponse.workflowSuccessRate.toFixed(1)}%`,
+    workflowSuccessRateNumeric: apiResponse.workflowSuccessRate,
     avgCompletionTime: `${Math.floor(apiResponse.avgWorkflowDurationSec / 60)}m ${apiResponse.avgWorkflowDurationSec % 60}s`,
     activitySuccessRate: `${apiResponse.activitySuccessRate.toFixed(1)}%`,
+    activitySuccessRateNumeric: apiResponse.activitySuccessRate,
+    totalWorkflows: apiResponse.totalWorkflows,
   }
 }
 
