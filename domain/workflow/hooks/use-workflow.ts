@@ -4,6 +4,7 @@ import type {
   StateTransition,
   ActivitySummary,
   WorkerSummary,
+  WorkflowStatus,
 } from "@/lib/api/types"
 import {
   normalizeWorkflowStatus,
@@ -12,8 +13,6 @@ import {
   formatTime,
   formatAddress,
   formatDurationMs,
-  type WorkflowStatus,
-  type ActivityStatus,
 } from "@/lib/api/transforms"
 
 export interface WorkflowDetails {
@@ -44,28 +43,34 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
   await new Promise((resolve) => setTimeout(resolve, 800))
 
   // MOCK DATA - Replace with actual API response
+  // Get current time for realistic "Running" workflow
+  const now = new Date()
+  const startTime = new Date(now.getTime() - 8 * 60 * 1000) // Started 8 minutes ago
+  const activity1Start = new Date(startTime.getTime() + 60 * 1000) // 1 min after start
+  const activity1End = new Date(activity1Start.getTime() + 90 * 1000) // 1.5 min duration
+  const activity2Start = new Date(activity1End.getTime() + 10 * 1000) // 10s after prev
+  const activity2End = new Date(activity2Start.getTime() + 120 * 1000) // 2 min duration
+  const activity3Start = new Date(activity2End.getTime() + 15 * 1000) // 15s after prev
+  const activity3End = new Date(activity3Start.getTime() + 150 * 1000) // 2.5 min duration
+  const activity4Start = new Date(activity3End.getTime() + 5 * 1000) // 5s after prev (currently running)
+
   const apiResponse: WorkflowDetailResponse = {
     workflowId: "0xabc123def456789",
-    type: "VideoTranscode",
+    type: "DataProcessing",
     definition: "0xdef456contract",
     creator: "0xuser123456789abcdef",
-    status: "Completed",
-    createdAt: "2025-10-16T10:21:00Z",
-    terminatedAt: "2025-10-16T10:28:42Z",
-    terminationReason: "Workflow completed successfully",
-    durationSec: 462,
-    currentStep: 8,
-    totalSteps: 8,
+    status: "Running",
+    createdAt: startTime.toISOString(),
+    terminatedAt: "",
+    terminationReason: "",
+    durationSec: Math.floor((now.getTime() - startTime.getTime()) / 1000),
+    currentStep: 4,
+    totalSteps: 6,
     stateHistory: [
       {
         from: "Created",
         to: "Running",
-        timestamp: "2025-10-16T10:21:05Z",
-      },
-      {
-        from: "Running",
-        to: "Completed",
-        timestamp: "2025-10-16T10:28:42Z",
+        timestamp: new Date(startTime.getTime() + 5000).toISOString(),
       },
     ],
     activities: [
@@ -73,43 +78,63 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
         activityId: "0xactivity789abc",
         stepIndex: 0,
         status: "Completed",
-        startedAt: "2025-10-16T10:22:01Z",
-        completedAt: "2025-10-16T10:22:35Z",
+        startedAt: activity1Start.toISOString(),
+        completedAt: activity1End.toISOString(),
         logRef: "ipfs://QmX1Y2Z3...",
       },
       {
         activityId: "0xactivity790abc",
         stepIndex: 1,
         status: "Completed",
-        startedAt: "2025-10-16T10:22:40Z",
-        completedAt: "2025-10-16T10:25:15Z",
+        startedAt: activity2Start.toISOString(),
+        completedAt: activity2End.toISOString(),
         logRef: "ipfs://QmA1B2C3...",
       },
       {
         activityId: "0xactivity791abc",
         stepIndex: 2,
         status: "Completed",
-        startedAt: "2025-10-16T10:25:20Z",
-        completedAt: "2025-10-16T10:26:40Z",
+        startedAt: activity3Start.toISOString(),
+        completedAt: activity3End.toISOString(),
         logRef: "ipfs://QmD1E2F3...",
       },
       {
         activityId: "0xactivity792abc",
         stepIndex: 3,
-        status: "Completed",
-        startedAt: "2025-10-16T10:26:45Z",
-        completedAt: "2025-10-16T10:28:40Z",
-        logRef: "ipfs://QmG1H2I3...",
+        status: "Running",
+        startedAt: activity4Start.toISOString(),
+        completedAt: "",
+        logRef: "",
+      },
+      {
+        activityId: "0xactivity793abc",
+        stepIndex: 4,
+        status: "Pending",
+        startedAt: "",
+        completedAt: "",
+        logRef: "",
+      },
+      {
+        activityId: "0xactivity794abc",
+        stepIndex: 5,
+        status: "Pending",
+        startedAt: "",
+        completedAt: "",
+        logRef: "",
       },
     ],
     workers: [
       {
         worker: "0xworker999abc123def",
-        lastHeartbeatAt: "2025-10-16T10:28:00Z",
+        lastHeartbeatAt: new Date(now.getTime() - 10000).toISOString(), // 10s ago
       },
       {
         worker: "0xworker888abc123def",
-        lastHeartbeatAt: "2025-10-16T10:27:30Z",
+        lastHeartbeatAt: new Date(now.getTime() - 15000).toISOString(), // 15s ago
+      },
+      {
+        worker: "0xworker777abc123def",
+        lastHeartbeatAt: new Date(now.getTime() - 5000).toISOString(), // 5s ago
       },
     ],
   }
@@ -120,7 +145,7 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
     type: apiResponse.type,
     definition: apiResponse.definition,
     creator: apiResponse.creator,
-    status: normalizeWorkflowStatus(apiResponse.status),
+    status: apiResponse.status,
     createdAt: apiResponse.createdAt,
     terminatedAt: apiResponse.terminatedAt,
     terminationReason: apiResponse.terminationReason,
@@ -129,15 +154,11 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
     durationSec: apiResponse.durationSec,
     currentStep: apiResponse.currentStep,
     totalSteps: apiResponse.totalSteps,
-    stateHistory: apiResponse.stateHistory.map((transition) => ({
-      from: normalizeWorkflowStatus(transition.from),
-      to: normalizeWorkflowStatus(transition.to),
-      timestamp: transition.timestamp,
-    })),
+    stateHistory: apiResponse.stateHistory,
     activities: apiResponse.activities.map((activity) => ({
       activityId: activity.activityId,
       stepIndex: activity.stepIndex,
-      status: normalizeActivityStatus(activity.status),
+      status:activity.status,
       startedAt: activity.startedAt,
       completedAt: activity.completedAt,
       logRef: activity.logRef,

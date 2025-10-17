@@ -37,7 +37,14 @@ export default function QueueDetailPage({
         </div>
 
         {queueLoading ? (
-          <Skeleton className="h-24 w-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64" />
+            <div className="flex items-center gap-4 text-sm">
+              <Skeleton className="h-4 w-32" />
+              <span className="text-muted-foreground">•</span>
+              <Skeleton className="h-4 w-40" />
+            </div>
+          </div>
         ) : (
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">{queueData?.name}</h1>
@@ -51,9 +58,41 @@ export default function QueueDetailPage({
 
         {queueLoading ? (
           <div className="grid gap-6 md:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
-            ))}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </div>
+              <Skeleton className="h-9 w-16 mb-1" />
+              <Skeleton className="h-3 w-28" />
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </div>
+              <Skeleton className="h-9 w-12 mb-1" />
+              <Skeleton className="h-3 w-32" />
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </div>
+              <Skeleton className="h-9 w-20 mb-1" />
+              <Skeleton className="h-3 w-24" />
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </div>
+              <Skeleton className="h-9 w-16 mb-1" />
+              <Skeleton className="h-3 w-28" />
+            </Card>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-4">
@@ -124,10 +163,55 @@ export default function QueueDetailPage({
           </div>
 
           {activitiesLoading ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
+            <div className="border border-border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <tbody>
+                  {[...Array(4)].map((_, i) => (
+                    <tr
+                      key={i}
+                      className="border-b border-border last:border-b-0"
+                    >
+                      <td className="p-4">
+                        <div className="flex items-start gap-4">
+                          {/* Activity Name and ID */}
+                          <div className="min-w-[200px]">
+                            <Skeleton className="h-4 w-32 mb-1" />
+                            <Skeleton className="h-3 w-24" />
+                          </div>
+
+                          {/* Workflow Info */}
+                          <div className="min-w-[180px]">
+                            <Skeleton className="h-3 w-16 mb-1" />
+                            <Skeleton className="h-3 w-28" />
+                          </div>
+
+                          {/* Status */}
+                          <div className="min-w-[100px]">
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                          </div>
+
+                          {/* Priority */}
+                          <div className="min-w-[100px]">
+                            <Skeleton className="h-6 w-16 rounded-full" />
+                          </div>
+
+                          {/* Queued Time */}
+                          <div className="min-w-[120px]">
+                            <Skeleton className="h-3 w-16 mb-1" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+
+                          {/* Estimated Duration */}
+                          <div className="flex-1 text-right">
+                            <Skeleton className="h-3 w-20 mb-1 ml-auto" />
+                            <Skeleton className="h-3 w-16 ml-auto" />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">

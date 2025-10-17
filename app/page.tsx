@@ -4,7 +4,11 @@ import { ObservabilityCard } from "@/domain/dashboard/components/observability-c
 import { MetricsCard } from "@/domain/dashboard/components/metrics-card";
 import { WorkflowsCard } from "@/domain/dashboard/components/workflows-card";
 import { MonitoringTabs } from "@/domain/dashboard/components/monitoring-tabs";
-import { Skeleton } from "@/common/components/skeleton";
+import {
+  ObservabilityCardSkeleton,
+  MetricsCardSkeleton,
+  WorkflowsCardSkeleton
+} from "@/domain/dashboard/components/dashboard-card-skeletons";
 import { useDashboardMetrics } from "@/domain/dashboard/hooks";
 
 export default function HomePage() {
@@ -23,9 +27,9 @@ export default function HomePage() {
       {/* Metrics Grid */}
       {metricsLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
+          <ObservabilityCardSkeleton />
+          <MetricsCardSkeleton />
+          <WorkflowsCardSkeleton />
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

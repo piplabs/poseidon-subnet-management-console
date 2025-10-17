@@ -8,10 +8,51 @@ export function TaskQueueTable({ subnetId }: { subnetId?: string }) {
 
   if (isLoading) {
     return (
-      <div className="border border-border rounded-lg p-4 space-y-3">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full" />
-        ))}
+      <div className="border border-border rounded-lg overflow-hidden">
+        <table className="w-full">
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr
+                key={i}
+                className="border-b border-border last:border-b-0"
+              >
+                <td className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Column 1: Queue Name and ID */}
+                    <div className="min-w-[180px]">
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+
+                    {/* Column 2: Pending Activities and Depth */}
+                    <div className="min-w-[140px]">
+                      <Skeleton className="h-4 w-24 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+
+                    {/* Column 3: Wait Times */}
+                    <div className="min-w-[140px]">
+                      <Skeleton className="h-4 w-28 mb-1" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+
+                    {/* Column 4: Throughput */}
+                    <div className="min-w-[100px]">
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+
+                    {/* Column 5: Created At */}
+                    <div className="flex-1 text-right">
+                      <Skeleton className="h-4 w-16 mb-1 ml-auto" />
+                      <Skeleton className="h-3 w-20 ml-auto" />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     )
   }

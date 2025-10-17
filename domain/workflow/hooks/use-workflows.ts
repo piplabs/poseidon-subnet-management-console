@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import type { WorkflowListResponse } from "@/lib/api/types"
+import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
 import {
   normalizeWorkflowStatus,
   formatDuration,
   formatTime,
   formatAddress,
-  type WorkflowStatus,
 } from "@/lib/api/transforms"
 
 export interface Workflow {
@@ -110,7 +109,7 @@ async function fetchWorkflows(subnetId?: string): Promise<Workflow[]> {
     id: item.workflowId,
     type: item.type,
     definition: item.definition,
-    status: normalizeWorkflowStatus(item.status),
+    status: item.status,
     startTime: formatTime(item.startedAt),
     endTime: item.endedAt ? formatTime(item.endedAt) : null,
     duration: formatDuration(item.durationSec),

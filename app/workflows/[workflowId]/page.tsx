@@ -2,6 +2,7 @@
 
 import { Button } from "@/common/components/button";
 import { Card } from "@/common/components/card";
+import { Skeleton } from "@/common/components/skeleton";
 import {
   Accordion,
   AccordionContent,
@@ -10,60 +11,12 @@ import {
 } from "@/common/components/accordion";
 import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-status-badge";
 import { WorkflowInfoCard } from "@/domain/workflow/components/workflow-info-card";
-// import { WorkflowGraph } from "@/domain/workflow/components/workflow-graph";
 import { WorkflowTimeline } from "@/domain/workflow/components/workflow-timeline";
-// import { WorkflowRawLogs } from "@/domain/workflow/components/workflow-raw-logs";
+import { useWorkflow } from "@/domain/workflow/hooks/use-workflow";
+import { formatDurationMs, formatAddress, formatDateTime } from "@/lib/api/transforms";
 import { Activity, BarChart3, Circle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-// Declare variables for activitiesData and workersData
-const activitiesData = [
-  {
-    id: "act-001",
-    name: "Fetch Data",
-    status: "completed",
-    duration: "2m 30s",
-    worker: "worker-001",
-  },
-  {
-    id: "act-002",
-    name: "Transform Data",
-    status: "completed",
-    duration: "3m 15s",
-    worker: "worker-002",
-  },
-  {
-    id: "act-003",
-    name: "Process Data",
-    status: "running",
-    duration: "1m 45s",
-    worker: "worker-003",
-  },
-  // Add more activities as needed
-];
-
-const workersData = [
-  {
-    id: "worker-001",
-    status: "active",
-    currentActivity: "Fetch Data",
-    tasksCompleted: 2,
-  },
-  {
-    id: "worker-002",
-    status: "inactive",
-    currentActivity: "None",
-    tasksCompleted: 1,
-  },
-  {
-    id: "worker-003",
-    status: "active",
-    currentActivity: "Process Data",
-    tasksCompleted: 0,
-  },
-  // Add more workers as needed
-];
 
 export default function WorkflowDetailPage({
   params,
@@ -71,6 +24,26 @@ export default function WorkflowDetailPage({
   params: { workflowId: string };
 }) {
   const router = useRouter();
+  const { data: workflow, isLoading, error } = useWorkflow(params.workflowId);
+
+  if (error) {
+    return (
+      <main className="p-6 space-y-6">
+        <div className="flex items-center gap-2">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-sm">Workflow</span>
+        </div>
+        <div className="border border-border rounded-lg p-6">
+          <div className="text-destructive">Error loading workflow details</div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="p-6 space-y-6">
@@ -85,34 +58,68 @@ export default function WorkflowDetailPage({
       </div>
 
       {/* Workflow Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">Workflow Details</h1>
-            <WorkflowStatusBadge status="running" />
+      {isLoading ? (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-9 w-64" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Workflow Details</h1>
+              <WorkflowStatusBadge status={workflow!.status} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Workflow Info Card */}
-      <WorkflowInfoCard
-        workflowId={params.workflowId}
-        type="DataProcessing"
-        definition="data-pipeline-v2"
-        creator="user@example.com"
-        status="running"
-        createdAt="2025-01-15 14:30:15 UTC"
-        duration="11m 8s"
-        completedSteps={3}
-        totalSteps={5}
-        workers={workersData.length}
-      />
+      {isLoading ? (
+        <div className="rounded-md bg-card border border-border shadow-sm">
+          <div className="flex flex-col gap-6 overflow-hidden p-4 md:flex-row">
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
+              {/* First Row */}
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex flex-col gap-1">
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                ))}
+              </div>
+              {/* Second Row */}
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex flex-col gap-1">
+                    <Skeleton className="h-3 w-20 mb-1" />
+                    <Skeleton className="h-5 w-28" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <WorkflowInfoCard
+          workflowId={workflow!.id}
+          type={workflow!.type}
+          definition={formatAddress(workflow!.definition, 12)}
+          creator={formatAddress(workflow!.creator, 12)}
+          status={workflow!.status}
+          createdAt={workflow!.createdAt}
+          duration={workflow!.duration}
+          completedSteps={workflow!.currentStep}
+          totalSteps={workflow!.totalSteps}
+          workers={workflow!.workers.length}
+        />
+      )}
 
-      {/* Workflow Graph */}
-      {/* <WorkflowGraph /> */}
-
-      {/* Event History */}
-
+      {/* Activities and Event History */}
       <Card className="border border-border rounded-lg overflow-hidden">
         <Accordion
           type="multiple"
@@ -131,56 +138,115 @@ export default function WorkflowDetailPage({
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                        ID
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                        Name
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                        Status
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                        Duration
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                        Worker
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activitiesData.map((activity) => (
-                      <tr
-                        key={activity.id}
-                        className="border-b border-border/50 hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => {
-                          router.push(`/activities/${activity.id}`);
-                        }}
-                      >
-                        <td className="py-3 px-4 font-mono text-xs">
-                          {activity.id}
-                        </td>
-                        <td className="py-3 px-4 text-sm">{activity.name}</td>
-                        <td className="py-3 px-4">
-                          <WorkflowStatusBadge
-                            status={activity.status as any}
-                          />
-                        </td>
-                        <td className="py-3 px-4 font-mono text-sm">
-                          {activity.duration}
-                        </td>
-                        <td className="py-3 px-4 font-mono text-xs text-muted-foreground">
-                          {activity.worker}
-                        </td>
+              {isLoading ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Step
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Activity ID
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Started
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Duration
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {[...Array(4)].map((_, i) => (
+                        <tr
+                          key={i}
+                          className="border-b border-border/50"
+                        >
+                          <td className="py-3 px-4">
+                            <Skeleton className="h-4 w-8" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <Skeleton className="h-4 w-32" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <Skeleton className="h-4 w-28" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <Skeleton className="h-4 w-16" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Step
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Activity ID
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Started
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                          Duration
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {workflow!.activities.map((activity) => {
+                        const duration = activity.completedAt && activity.startedAt
+                          ? formatDurationMs(
+                              new Date(activity.completedAt).getTime() -
+                              new Date(activity.startedAt).getTime()
+                            )
+                          : "-";
+
+                        return (
+                          <tr
+                            key={activity.activityId}
+                            className="border-b border-border/50 hover:bg-muted/50 transition-colors cursor-pointer"
+                            onClick={() => {
+                              router.push(`/activities/${activity.activityId}`);
+                            }}
+                          >
+                            <td className="py-3 px-4 font-mono text-xs">
+                              {activity.stepIndex}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-xs">
+                              {formatAddress(activity.activityId, 12)}
+                            </td>
+                            <td className="py-3 px-4">
+                              <WorkflowStatusBadge status={activity.status} />
+                            </td>
+                            <td className="py-3 px-4 text-sm">
+                              {formatDateTime(activity.startedAt)}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-sm">
+                              {duration}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
 
@@ -199,79 +265,61 @@ export default function WorkflowDetailPage({
               <WorkflowTimeline workflowId={params.workflowId} />
             </AccordionContent>
           </AccordionItem>
-
-          {/* Raw Log Accordion */}
-          {/* <AccordionItem value="raw-log" className="px-6">
-            <AccordionTrigger className="hover:no-underline py-4">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="text-sm font-medium">Raw Log</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pb-4">
-              <WorkflowRawLogs />
-            </AccordionContent>
-          </AccordionItem> */}
         </Accordion>
       </Card>
 
+      {/* Workers Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Workers</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {workersData.map((worker) => (
-            <Card
-              key={worker.id}
-              className="p-4 hover:bg-[#1E1F22FF] transition-colors cursor-pointer"
-            >
-              <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Circle
-                      className={`h-2 w-2 ${
-                        worker.status === "active"
-                          ? "fill-success text-success"
-                          : "fill-muted-foreground text-muted-foreground"
-                      }`}
-                    />
-                    <h4 className="text-sm font-mono font-medium">
-                      {worker.id}
-                    </h4>
-                  </div>
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    <div className="flex justify-between">
-                      <span>Status:</span>
-                      <span className="font-medium capitalize">
-                        {worker.status}
-                      </span>
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-2 w-2 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
                     </div>
-                    <div className="flex justify-between">
-                      <span>Current Activity:</span>
-                      <span className="font-mono">
-                        {worker.currentActivity}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tasks Completed:</span>
-                      <span className="font-medium">
-                        {worker.tasksCompleted}
-                      </span>
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-full" />
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {workflow!.workers.map((worker) => (
+              <Card
+                key={worker.worker}
+                className="p-4 hover:bg-[#1E1F22FF] transition-colors cursor-pointer"
+                onClick={() => router.push(`/workers/${worker.worker}`)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Circle className="h-2 w-2 fill-success text-success" />
+                      <h4 className="text-sm font-mono font-medium">
+                        {formatAddress(worker.worker, 12)}
+                      </h4>
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Last Heartbeat:</span>
+                        <span className="font-medium">
+                          {formatDateTime(worker.lastHeartbeatAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
