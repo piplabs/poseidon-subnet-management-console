@@ -129,73 +129,76 @@ export function WorkflowInfoCard({
 
           {/* Second Row */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {/* Definition */}
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Definition</span>
-              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm font-mono truncate">
-                <FileText className="h-4 w-4 flex-none" />
-                <span className="truncate">{definition}</span>
-              </div>
-            </div>
+            <Item
+              label="Definition"
+              content={
+                <>
+                  <FileText className="h-4 w-4 flex-none" />
+                  <span className="truncate font-mono">{definition}</span>
+                </>
+              }
+            />
 
-            {/* Creator */}
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Creator</span>
-              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm truncate">
-                <User className="h-4 w-4 flex-none" />
-                <span className="truncate">{creator}</span>
-              </div>
-            </div>
+            <Item
+              label="Creator"
+              content={
+                <>
+                  <User className="h-4 w-4 flex-none" />
+                  <span className="truncate">{creator}</span>
+                </>
+              }
+            />
 
-            {/* Steps Progress */}
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Steps</span>
-              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
-                {/* Mini Pie Chart */}
-                <svg
-                  className="h-4 w-4 flex-none"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="10"
-                    cy="10"
-                    r="8"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-muted"
-                    opacity="0.2"
-                  />
-                  <circle
-                    cx="10"
-                    cy="10"
-                    r="8"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-primary"
-                    strokeDasharray={`${progressPercentage * 0.503} ${
-                      (100 - progressPercentage) * 0.503
-                    }`}
-                    strokeDashoffset="12.575"
-                    transform="rotate(-90 10 10)"
-                  />
-                </svg>
-                <span>
-                  {completedSteps}/{totalSteps}
-                </span>
-              </div>
-            </div>
+            <Item
+              label="Steps"
+              content={
+                <>
+                  <svg
+                    className="h-4 w-4 flex-none"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-muted"
+                      opacity="0.2"
+                    />
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-primary"
+                      strokeDasharray={`${progressPercentage * 0.503} ${
+                        (100 - progressPercentage) * 0.503
+                      }`}
+                      strokeDashoffset="12.575"
+                      transform="rotate(-90 10 10)"
+                    />
+                  </svg>
+                  <span>
+                    {completedSteps}/{totalSteps}
+                  </span>
+                </>
+              }
+            />
 
-            {/* Workers */}
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Workers</span>
-              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
-                <Activity className="h-4 w-4 flex-none" />
-                <span>{workers}</span>
-              </div>
-            </div>
+            <Item
+              label="Workers"
+              content={
+                <>
+                  <Activity className="h-4 w-4 flex-none" />
+                  <span>{workers}</span>
+                </>
+              }
+            />
           </div>
         </div>
       </div>
