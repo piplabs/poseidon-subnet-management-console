@@ -365,9 +365,9 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
           </div>
 
           {/* Timeline visualization - Scrollable wrapper */}
-          <div className="overflow-x-auto overflow-y-visible">
+          <div className="overflow-x-auto overflow-y-visible bg-background/50 rounded border border-border/50">
             <div
-              className={`relative ${timelineHeight} bg-background/50 rounded border border-border/50`}
+              className={`relative ${timelineHeight}`}
               style={{
                 width: `${timelineWidthPx}px`,
                 minWidth: `${timelineWidthPx}px`,
