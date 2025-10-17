@@ -98,3 +98,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+*::selection {
+  background: #95a5ac40;
+}
+
+/* Dark scrollbar */
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* For Firefox */
+* {
+  scrollbar-color: #404040 #1a1a1a;
+}
