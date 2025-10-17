@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Card } from "@/common/components/card"
-import { Check, XCircle } from "lucide-react"
+import { Card } from "@/common/components/card";
+import { Check, XCircle } from "lucide-react";
 
 interface ActivityNode {
-  id: string
-  name: string
-  status: "completed" | "failed" | "running" | "pending"
-  duration?: string
+  id: string;
+  name: string;
+  status: "completed" | "failed" | "running" | "pending";
+  duration?: string;
 }
 
 const mockActivities: ActivityNode[] = [
@@ -16,14 +16,13 @@ const mockActivities: ActivityNode[] = [
   { id: "act-003", name: "Process Data", status: "running", duration: "5.2s" },
   { id: "act-004", name: "Validate Results", status: "pending" },
   { id: "act-005", name: "Store Output", status: "pending" },
-]
+];
 
 export function WorkflowGraph() {
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-sm font-medium">Workflow Execution Graph</h3>
-        <p className="text-xs text-muted-foreground mt-1">Visual representation of activity flow</p>
+        <h3 className="text-sm font-medium">Steps</h3>
       </div>
 
       <div className="relative overflow-x-auto pb-4">
@@ -38,25 +37,41 @@ export function WorkflowGraph() {
                     activity.status === "completed"
                       ? "bg-muted-foreground/20" // Gray background for completed status
                       : activity.status === "failed"
-                        ? "border-2 border-destructive bg-destructive/10"
-                        : activity.status === "running"
-                          ? "border-2 border-primary bg-primary/10"
-                          : "border-2 border-muted-foreground/30 bg-muted"
+                      ? "border-2 border-destructive bg-destructive/10"
+                      : activity.status === "running"
+                      ? "border-2 border-primary bg-primary/10"
+                      : "border-2 border-muted-foreground/30 bg-muted"
                   }`}
                 >
-                  {activity.status === "completed" && <Check className="h-6 w-6 text-muted-foreground" />}
-                  {activity.status === "failed" && <XCircle className="h-6 w-6 text-destructive" />}
-                  {activity.status === "running" && <div className="text-lg font-bold text-primary">{index + 1}</div>}
+                  {activity.status === "completed" && (
+                    <Check className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  {activity.status === "failed" && (
+                    <XCircle className="h-6 w-6 text-destructive" />
+                  )}
+                  {activity.status === "running" && (
+                    <div className="text-lg font-bold text-primary">
+                      {index + 1}
+                    </div>
+                  )}
                   {activity.status === "pending" && (
-                    <div className="text-lg font-medium text-muted-foreground">{index + 1}</div>
+                    <div className="text-lg font-medium text-muted-foreground">
+                      {index + 1}
+                    </div>
                   )}
                 </div>
 
                 {/* Label below circle */}
                 <div className="text-center mt-2">
                   <p className="text-xs font-medium">{activity.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{activity.id}</p>
-                  {activity.duration && <p className="text-xs text-muted-foreground mt-1">{activity.duration}</p>}
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {activity.id}
+                  </p>
+                  {activity.duration && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {activity.duration}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -64,9 +79,13 @@ export function WorkflowGraph() {
               {index < mockActivities.length - 1 && (
                 <div className="relative w-16 -mx-2" style={{ height: "48px" }}>
                   {/* Line positioned at vertical center (24px from top, which is center of 48px circle) */}
-                  <div className="absolute left-0 right-0" style={{ top: "24px" }}>
+                  <div
+                    className="absolute left-0 right-0"
+                    style={{ top: "24px" }}
+                  >
                     {/* Gradient animated line between completed and running */}
-                    {activity.status === "completed" && mockActivities[index + 1].status === "running" ? (
+                    {activity.status === "completed" &&
+                    mockActivities[index + 1].status === "running" ? (
                       <div className="relative w-full h-0.5 overflow-hidden bg-muted">
                         <div
                           className="absolute inset-0 h-full w-full bg-gradient-to-r from-muted-foreground/20 to-primary"
@@ -101,5 +120,5 @@ export function WorkflowGraph() {
         }
       `}</style>
     </Card>
-  )
+  );
 }

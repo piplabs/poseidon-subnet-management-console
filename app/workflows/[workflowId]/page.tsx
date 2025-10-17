@@ -9,9 +9,10 @@ import {
   AccordionTrigger,
 } from "@/common/components/accordion";
 import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-status-badge";
-import { WorkflowGraph } from "@/domain/workflow/components/workflow-graph";
+import { WorkflowInfoCard } from "@/domain/workflow/components/workflow-info-card";
+// import { WorkflowGraph } from "@/domain/workflow/components/workflow-graph";
 import { WorkflowTimeline } from "@/domain/workflow/components/workflow-timeline";
-import { WorkflowRawLogs } from "@/domain/workflow/components/workflow-raw-logs";
+// import { WorkflowRawLogs } from "@/domain/workflow/components/workflow-raw-logs";
 import { Activity, BarChart3, Circle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -90,47 +91,32 @@ export default function WorkflowDetailPage({
             <h1 className="text-3xl font-bold">Workflow Details</h1>
             <WorkflowStatusBadge status="running" />
           </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-            <span className="font-mono">{params.workflowId}</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Type: DataProcessing</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Started: 2025-01-15 14:30:15</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Duration: 5m 23s</span>
-          </div>
         </div>
       </div>
 
-      {/* Workflow Info Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground mb-1">User</div>
-          <div className="font-mono text-sm">0x1234...5678</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground mb-1">
-            Current Activity
-          </div>
-          <div className="text-sm">Process Data (act-003)</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground mb-1">
-            Activities Completed
-          </div>
-          <div className="text-sm">2 of 5</div>
-        </Card>
-      </div>
+      {/* Workflow Info Card */}
+      <WorkflowInfoCard
+        workflowId={params.workflowId}
+        type="DataProcessing"
+        definition="data-pipeline-v2"
+        creator="user@example.com"
+        status="running"
+        createdAt="2025-01-15 14:30:15 UTC"
+        duration="11m 8s"
+        completedSteps={3}
+        totalSteps={5}
+        workers={workersData.length}
+      />
 
       {/* Workflow Graph */}
-      <WorkflowGraph />
+      {/* <WorkflowGraph /> */}
 
       {/* Event History */}
 
       <Card className="border border-border rounded-lg overflow-hidden">
         <Accordion
           type="multiple"
-          defaultValue={["event-history"]}
+          defaultValue={["event-history", "activities"]}
           className="w-full"
         >
           {/* Activities Accordion */}
@@ -215,7 +201,7 @@ export default function WorkflowDetailPage({
           </AccordionItem>
 
           {/* Raw Log Accordion */}
-          <AccordionItem value="raw-log" className="px-6">
+          {/* <AccordionItem value="raw-log" className="px-6">
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-2">
                 <svg
@@ -235,7 +221,7 @@ export default function WorkflowDetailPage({
             <AccordionContent className="pb-4">
               <WorkflowRawLogs />
             </AccordionContent>
-          </AccordionItem>
+          </AccordionItem> */}
         </Accordion>
       </Card>
 
