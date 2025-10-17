@@ -70,13 +70,16 @@ export function WorkflowInfoCard({
   const relativeTime = getRelativeTime(createdAt);
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0}>
       <div className="rounded-md bg-card border border-border shadow-sm">
         <div className="flex flex-col gap-6 overflow-hidden p-4 md:flex-row">
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             {/* First Row */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <Item label="ID" content={<span className="font-mono">{workflowId}</span>} />
+              <Item
+                label="ID"
+                content={<span className="font-mono">{workflowId}</span>}
+              />
 
               <Item
                 label="Type"
@@ -116,7 +119,9 @@ export function WorkflowInfoCard({
                     <span>{duration}</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="cursor-help">{relativeTime}</span>
+                        <span className="cursor-help text-gray-500 text-xs">
+                          {relativeTime}
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{createdAt}</p>
@@ -127,82 +132,82 @@ export function WorkflowInfoCard({
               />
             </div>
 
-          {/* Second Row */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Item
-              label="Definition"
-              content={
-                <>
-                  <FileText className="h-4 w-4 flex-none" />
-                  <span className="truncate font-mono">{definition}</span>
-                </>
-              }
-            />
+            {/* Second Row */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <Item
+                label="Definition"
+                content={
+                  <>
+                    <FileText className="h-4 w-4 flex-none" />
+                    <span className="truncate font-mono">{definition}</span>
+                  </>
+                }
+              />
 
-            <Item
-              label="Creator"
-              content={
-                <>
-                  <User className="h-4 w-4 flex-none" />
-                  <span className="truncate">{creator}</span>
-                </>
-              }
-            />
+              <Item
+                label="Creator"
+                content={
+                  <>
+                    <User className="h-4 w-4 flex-none" />
+                    <span className="truncate">{creator}</span>
+                  </>
+                }
+              />
 
-            <Item
-              label="Steps"
-              content={
-                <>
-                  <svg
-                    className="h-4 w-4 flex-none"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="8"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-muted"
-                      opacity="0.2"
-                    />
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="8"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-primary"
-                      strokeDasharray={`${progressPercentage * 0.503} ${
-                        (100 - progressPercentage) * 0.503
-                      }`}
-                      strokeDashoffset="12.575"
-                      transform="rotate(-90 10 10)"
-                    />
-                  </svg>
-                  <span>
-                    {completedSteps}/{totalSteps}
-                  </span>
-                </>
-              }
-            />
+              <Item
+                label="Steps"
+                content={
+                  <>
+                    <svg
+                      className="h-4 w-4 flex-none"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="10"
+                        cy="10"
+                        r="8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="text-muted"
+                        opacity="0.2"
+                      />
+                      <circle
+                        cx="10"
+                        cy="10"
+                        r="8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="text-primary"
+                        strokeDasharray={`${progressPercentage * 0.503} ${
+                          (100 - progressPercentage) * 0.503
+                        }`}
+                        strokeDashoffset="12.575"
+                        transform="rotate(-90 10 10)"
+                      />
+                    </svg>
+                    <span>
+                      {completedSteps}/{totalSteps}
+                    </span>
+                  </>
+                }
+              />
 
-            <Item
-              label="Workers"
-              content={
-                <>
-                  <Activity className="h-4 w-4 flex-none" />
-                  <span>{workers}</span>
-                </>
-              }
-            />
+              <Item
+                label="Workers"
+                content={
+                  <>
+                    <Activity className="h-4 w-4 flex-none" />
+                    <span>{workers}</span>
+                  </>
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </TooltipProvider>
   );
 }
