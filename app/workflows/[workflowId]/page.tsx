@@ -34,15 +34,6 @@ export default function WorkflowDetailPage({
   if (error) {
     return (
       <MainContent>
-        <div className="flex items-center gap-2">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              Home
-            </Button>
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-sm">Workflow</span>
-        </div>
         <div className="border border-border rounded-lg p-6">
           <div className="text-destructive">Error loading workflow details</div>
         </div>
@@ -52,16 +43,6 @@ export default function WorkflowDetailPage({
 
   return (
     <MainContent>
-      <div className="flex items-center gap-2">
-        <Link href="/">
-          <Button variant="ghost" size="sm">
-            Home
-          </Button>
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm">Workflow</span>
-      </div>
-
       {/* Workflow Header */}
       {isLoading ? (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
