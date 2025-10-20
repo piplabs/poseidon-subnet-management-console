@@ -37,26 +37,35 @@ export function WorkflowsCard({ totalWorkflows }: WorkflowsCardProps) {
     totalWorkflows.completed +
     totalWorkflows.failed;
 
-  const renderCustomLabel = ({ cx, cy }: { cx: number; cy: number }) => {
+  const renderCustomLabel = ({
+    cx,
+    cy,
+  }: {
+    cx?: string | number;
+    cy?: string | number;
+  }) => {
+    const centerX = typeof cx === "number" ? cx : parseFloat(cx || "0");
+    const centerY = typeof cy === "number" ? cy : parseFloat(cy || "0");
+
     return (
       <g>
         <text
-          x={cx}
-          y={cy - 8}
+          x={centerX}
+          y={centerY - 4}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground text-3xl font-mono"
+          className="fill-foreground text-[20px] font-mono"
         >
           {total}
         </text>
         <text
-          x={cx}
-          y={cy + 14}
+          x={centerX}
+          y={centerY + 14}
           textAnchor="middle"
           dominantBaseline="middle"
           className="fill-muted-foreground text-[10px]"
         >
-          Total Workflows
+          Total
         </text>
       </g>
     );
@@ -89,19 +98,22 @@ export function WorkflowsCard({ totalWorkflows }: WorkflowsCardProps) {
         <h3 className="text-xs text-muted-foreground">Workflows</h3>
 
         {/* Centered Pie Chart */}
-        <div className="w-full h-[200px]">
+        <div className="w-full h-[120px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={85}
+                innerRadius={40}
+                outerRadius={60}
                 dataKey="value"
                 label={renderCustomLabel}
                 labelLine={false}
+                width={120}
+                height={120}
                 strokeWidth={0}
+                isAnimationActive={false}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />

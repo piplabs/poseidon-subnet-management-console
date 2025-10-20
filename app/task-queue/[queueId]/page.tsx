@@ -15,209 +15,181 @@ export default function QueueDetailPage({
   params: { queueId: string };
 }) {
   const router = useRouter();
-  const { data: queueData, isLoading: queueLoading } = useTaskQueue(params.queueId);
-  const { data: activities, isLoading: activitiesLoading } = useQueueActivities(params.queueId);
+  const { data: queueData, isLoading: queueLoading } = useTaskQueue(
+    params.queueId
+  );
+  const { data: activities, isLoading: activitiesLoading } = useQueueActivities(
+    params.queueId
+  );
 
   return (
-      <main className="p-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              Home
-            </Button>
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <Link href="/task-queue">
-            <Button variant="ghost" size="sm">
-              Task Queues
-            </Button>
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-sm">{params.queueId}</span>
+    <main className="p-6 space-y-6">
+      {queueLoading ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-4 text-sm">
+            <Skeleton className="h-4 w-32" />
+            <span className="text-muted-foreground">•</span>
+            <Skeleton className="h-4 w-40" />
+          </div>
         </div>
-
-        {queueLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-9 w-64" />
-            <div className="flex items-center gap-4 text-sm">
-              <Skeleton className="h-4 w-32" />
-              <span className="text-muted-foreground">•</span>
-              <Skeleton className="h-4 w-40" />
-            </div>
+      ) : (
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">{queueData?.name}</h1>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="font-mono">{queueData?.id}</span>
+            <span>•</span>
+            <span>Created {queueData?.createdAt}</span>
           </div>
-        ) : (
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold">{queueData?.name}</h1>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="font-mono">{queueData?.id}</span>
-              <span>•</span>
-              <span>Created {queueData?.createdAt}</span>
-            </div>
+        </div>
+      )}
+
+      {queueLoading ? (
+        <Card className="p-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex flex-col gap-1">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
           </div>
-        )}
-
-        {queueLoading ? (
-          <div className="grid gap-6 md:grid-cols-4">
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-4 rounded" />
-              </div>
-              <Skeleton className="h-9 w-16 mb-1" />
-              <Skeleton className="h-3 w-28" />
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-4 w-4 rounded" />
-              </div>
-              <Skeleton className="h-9 w-12 mb-1" />
-              <Skeleton className="h-3 w-32" />
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-4 rounded" />
-              </div>
-              <Skeleton className="h-9 w-20 mb-1" />
-              <Skeleton className="h-3 w-24" />
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-4 rounded" />
-              </div>
-              <Skeleton className="h-9 w-16 mb-1" />
-              <Skeleton className="h-3 w-28" />
-            </Card>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-4">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-muted-foreground">
+        </Card>
+      ) : (
+        <Card className="p-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            {/* Pending Activities */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
                 Pending Activities
+              </span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <Activity className="h-4 w-4 flex-none" />
+                <span className="font-mono">
+                  {queueData?.pendingActivities}
+                </span>
               </div>
-              <Activity className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-3xl font-bold font-mono">
-              {queueData?.pendingActivities}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Current depth: {queueData?.currentDepth}
-            </div>
-          </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-muted-foreground">
+            {/* Active Workers */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
                 Active Workers
+              </span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <Users className="h-4 w-4 flex-none" />
+                <span className="font-mono">{queueData?.activeWorkers}</span>
               </div>
-              <Users className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-3xl font-bold font-mono">
-              {queueData?.activeWorkers}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Processing tasks
-            </div>
-          </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-muted-foreground">Avg Wait Time</div>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            {/* Avg Wait Time */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
+                Avg Wait Time
+              </span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <Clock className="h-4 w-4 flex-none" />
+                <span className="font-mono">{queueData?.averageWaitTime}</span>
+              </div>
             </div>
-            <div className="text-3xl font-bold font-mono">
-              {queueData?.averageWaitTime}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Oldest: {queueData?.oldestPendingActivity}
-            </div>
-          </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-muted-foreground">Throughput</div>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            {/* Throughput */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Throughput</span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <TrendingUp className="h-4 w-4 flex-none" />
+                <span className="font-mono">{queueData?.throughput}</span>
+              </div>
             </div>
-            <div className="text-3xl font-bold font-mono">
-              {queueData?.throughput}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Tasks per hour
-            </div>
-          </Card>
-        </div>
-        )}
 
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Activities in Queue</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tasks currently queued and waiting for execution
-            </p>
+            {/* Current Depth */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
+                Current Depth
+              </span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <span className="font-mono">{queueData?.currentDepth}</span>
+              </div>
+            </div>
+
+            {/* Oldest Pending */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
+                Oldest Pending
+              </span>
+              <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
+                <span className="truncate">
+                  {queueData?.oldestPendingActivity}
+                </span>
+              </div>
+            </div>
           </div>
+        </Card>
+      )}
 
-          {activitiesLoading ? (
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <tbody>
-                  {[...Array(4)].map((_, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-border last:border-b-0"
-                    >
-                      <td className="p-4">
-                        <div className="flex items-start gap-4">
-                          {/* Activity Name and ID */}
-                          <div className="min-w-[200px]">
-                            <Skeleton className="h-4 w-32 mb-1" />
-                            <Skeleton className="h-3 w-24" />
-                          </div>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold">Activities in Queue</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Tasks currently queued and waiting for execution
+          </p>
+        </div>
 
-                          {/* Workflow Info */}
-                          <div className="min-w-[180px]">
-                            <Skeleton className="h-3 w-16 mb-1" />
-                            <Skeleton className="h-3 w-28" />
-                          </div>
-
-                          {/* Status */}
-                          <div className="min-w-[100px]">
-                            <Skeleton className="h-6 w-20 rounded-full" />
-                          </div>
-
-                          {/* Priority */}
-                          <div className="min-w-[100px]">
-                            <Skeleton className="h-6 w-16 rounded-full" />
-                          </div>
-
-                          {/* Queued Time */}
-                          <div className="min-w-[120px]">
-                            <Skeleton className="h-3 w-16 mb-1" />
-                            <Skeleton className="h-3 w-20" />
-                          </div>
-
-                          {/* Estimated Duration */}
-                          <div className="flex-1 text-right">
-                            <Skeleton className="h-3 w-20 mb-1 ml-auto" />
-                            <Skeleton className="h-3 w-16 ml-auto" />
-                          </div>
+        {activitiesLoading ? (
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <tbody>
+                {[...Array(4)].map((_, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-border last:border-b-0"
+                  >
+                    <td className="p-4">
+                      <div className="flex items-start gap-4">
+                        {/* Activity Name and ID */}
+                        <div className="min-w-[200px]">
+                          <Skeleton className="h-4 w-32 mb-1" />
+                          <Skeleton className="h-3 w-24" />
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <tbody>
-                  {activities?.map((activity) => (
+
+                        {/* Workflow Info */}
+                        <div className="min-w-[180px]">
+                          <Skeleton className="h-3 w-16 mb-1" />
+                          <Skeleton className="h-3 w-28" />
+                        </div>
+
+                        {/* Status */}
+                        <div className="min-w-[100px]">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+
+                        {/* Priority */}
+                        <div className="min-w-[100px]">
+                          <Skeleton className="h-6 w-16 rounded-full" />
+                        </div>
+
+                        {/* Queued Time */}
+                        <div className="min-w-[120px]">
+                          <Skeleton className="h-3 w-16 mb-1" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+
+                        {/* Estimated Duration */}
+                        <div className="flex-1 text-right">
+                          <Skeleton className="h-3 w-20 mb-1 ml-auto" />
+                          <Skeleton className="h-3 w-16 ml-auto" />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <tbody>
+                {activities?.map((activity) => (
                   <tr
                     key={activity.id}
                     className="border-b border-border last:border-b-0 hover:bg-[#1E1F22FF] transition-colors cursor-pointer"
@@ -297,12 +269,12 @@ export default function QueueDetailPage({
                       </div>
                     </td>
                   </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }

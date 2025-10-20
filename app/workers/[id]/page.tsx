@@ -11,9 +11,19 @@ import {
   formatStakedAmount,
   getWorkflowStatusColor,
 } from "@/lib/api/transforms";
-import { ArrowLeft, Activity, Clock, Coins, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  Activity,
+  Clock,
+  Coins,
+  AlertTriangle,
+  Search,
+  MoreHorizontal,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function WorkerDetailPage({
   params,
@@ -22,6 +32,7 @@ export default function WorkerDetailPage({
 }) {
   const router = useRouter();
   const { data: worker, isLoading, error } = useWorker(params.id);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getStatusBadgeClass = (status: string) => {
     const color = getWorkflowStatusColor(status as any);
@@ -39,9 +50,6 @@ export default function WorkerDetailPage({
   if (isLoading) {
     return (
       <main className="p-6 space-y-6">
-        {/* Breadcrumb Skeleton */}
-        <Skeleton className="h-9 w-48" />
-
         {/* Header Skeleton */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -132,16 +140,6 @@ export default function WorkerDetailPage({
 
   return (
     <main className="p-6 space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2">
-        <Link href="/">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Button>
-        </Link>
-      </div>
-
       {/* Worker Header */}
       <div className="flex items-start justify-between">
         <div className="space-y-2">
@@ -169,19 +167,11 @@ export default function WorkerDetailPage({
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="font-mono">{formatAddress(worker.id, 16)}</span>
-            <span>•</span>
-            <span>Registered: {formatDateTime(worker.registeredAt)}</span>
-          </div>
         </div>
       </div>
 
       {/* Worker Information */}
       <Card className="p-6">
-        <h3 className="text-xs text-muted-foreground mb-4">
-          Worker Information
-        </h3>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">ID</span>
@@ -280,77 +270,65 @@ export default function WorkerDetailPage({
         </div>
       </Card>
 
-      {/* Active Tasks and Recent Workflows */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div>
+        <h3 className="text-sm font-medium mb-2">Tasks</h3>
         {/* Active Tasks */}
-        <Card className="p-6">
-          <h3 className="text-sm font-medium mb-4">
-            Active Tasks ({worker.activeTasks.length})
-          </h3>
+        <Card className="overflow-hidden py-0">
+          {/* Task List */}
           {worker.activeTasks.length > 0 ? (
-            <div className="space-y-2">
-              {worker.activeTasks.map((task, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-lg border border-border bg-card px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/workflows/${task.workflowId}`)}
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Workflow
-                      </span>
-                      <span className="font-mono text-xs">
-                        {formatAddress(task.workflowId, 12)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Activity
-                      </span>
-                      <span className="font-mono text-xs">
-                        {formatAddress(task.activityId, 12)}
-                      </span>
+            <div className="divide-y divide-border">
+              {worker.activeTasks
+                .filter(
+                  (task) =>
+                    task.workflowId
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                    task.activityId
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase())
+                )
+                .map((task, idx) => (
+                  <div
+                    key={idx}
+                    className="group flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/workflows/${task.workflowId}`)}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Branch Icon */}
+                      <Activity className="h-4 w-4 text-muted-foreground flex-none" />
+
+                      {/* Task Info */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-sm font-mono truncate">
+                          {formatAddress(task.workflowId, 16)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 flex-none">
+                        {/* Preview Badge */}
+                        <Badge
+                          variant="outline"
+                          className="border-blue-500/20 bg-blue-500/10 text-blue-500 text-xs"
+                        >
+                          Preview
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">No active tasks</div>
+            <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+              No active tasks
+            </div>
           )}
-        </Card>
 
-        {/* Recent Workflows */}
-        <Card className="p-6">
-          <h3 className="text-sm font-medium mb-4">
-            Recent Workflows ({worker.recentWorkflows.length})
-          </h3>
-          {worker.recentWorkflows.length > 0 ? (
-            <div className="space-y-2">
-              {worker.recentWorkflows.map((workflow, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() =>
-                    router.push(`/workflows/${workflow.workflowId}`)
-                  }
-                >
-                  <span className="font-mono text-sm">
-                    {formatAddress(workflow.workflowId, 12)}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className={getStatusBadgeClass(workflow.status)}
-                  >
-                    {workflow.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No recent workflows
+          {/* Load More Button */}
+          {worker.activeTasks.length > 5 && (
+            <div className="border-t border-border px-6 py-3">
+              <button className="w-full text-sm text-center text-muted-foreground hover:text-foreground transition-colors">
+                Load More
+              </button>
             </div>
           )}
         </Card>
