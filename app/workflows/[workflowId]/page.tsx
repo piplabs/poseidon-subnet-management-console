@@ -92,7 +92,7 @@ export default function WorkflowDetailPage({
         </div>
       ) : (
         <WorkflowInfoCard
-          workflowId={workflow!.id}
+          workflowId={formatAddress(workflow!.id, 12)}
           type={workflow!.type}
           definition={formatAddress(workflow!.definition, 12)}
           creator={formatAddress(workflow!.creator, 12)}
