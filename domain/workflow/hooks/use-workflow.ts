@@ -7,8 +7,6 @@ import type {
   WorkflowStatus,
 } from "@/lib/api/types"
 import {
-  normalizeWorkflowStatus,
-  normalizeActivityStatus,
   formatDuration,
   formatTime,
   formatAddress,

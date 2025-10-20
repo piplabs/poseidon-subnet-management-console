@@ -7,7 +7,7 @@ import {
   PauseCircle,
   User,
 } from "lucide-react";
-import { ActivityStatus } from "@/lib/api";
+import type { ActivityStatus } from "@/lib/api/types";
 
 interface WorkflowStatusBadgeProps {
   status: ActivityStatus | string;

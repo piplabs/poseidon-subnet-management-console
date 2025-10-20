@@ -88,8 +88,7 @@ poseidon-subnet-management-console/
 │   ├── api/                 # API types and transforms
 │   └── utils.ts             # Utility functions
 ├── public/                   # Static assets
-├── styles/                   # Global styles
-└── swagger.json             # API schema definition
+└── styles/                   # Global styles
 ```
 
 ## Key Features
@@ -138,4 +137,4 @@ The application consumes the Poseidon Subnet Management API. Key endpoints inclu
 - `/api/task-queue` - Task queue information
 - `/api/workers` - Worker information
 
-API types are defined in [lib/api/types.ts](lib/api/types.ts) and match the [swagger.json](swagger.json) schema.
+API types are defined in [lib/api/types.ts](lib/api/types.ts)

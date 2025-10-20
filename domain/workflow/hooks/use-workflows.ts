@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
 import {
-  normalizeWorkflowStatus,
   formatDuration,
   formatTime,
   formatAddress,

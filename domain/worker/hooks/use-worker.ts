@@ -3,11 +3,10 @@ import type {
   WorkerDetailResponse,
   WorkerActivity,
   WorkerWorkflow,
+  WorkerStatus,
 } from "@/lib/api/types"
 import {
-  normalizeWorkflowStatus,
   formatRelativeTime,
-  type WorkerStatus,
 } from "@/lib/api/transforms"
 
 export interface WorkerDetails {
@@ -78,11 +77,11 @@ async function fetchWorker(workerId: string): Promise<WorkerDetails> {
 
   // Derive status from jailed flag and last heartbeat
   const getWorkerStatus = (): WorkerStatus => {
-    if (apiResponse.jailed) return "jailed"
+    if (apiResponse.jailed) return "Jailed"
     const lastHeartbeatTime = new Date(apiResponse.lastHeartbeat).getTime()
     const now = Date.now()
     const inactiveSeconds = (now - lastHeartbeatTime) / 1000
-    return inactiveSeconds < 60 ? "active" : "inactive"
+    return inactiveSeconds < 60 ? "Active" : "Inactive"
   }
 
   // Transform to FE format
@@ -95,10 +94,7 @@ async function fetchWorker(workerId: string): Promise<WorkerDetails> {
     lastHeartbeatRelative: formatRelativeTime(apiResponse.lastHeartbeat),
     missedHeartbeats: apiResponse.missedHeartbeats,
     activeTasks: apiResponse.activeTasks,
-    recentWorkflows: apiResponse.recentWorkflows.map((wf) => ({
-      workflowId: wf.workflowId,
-      status: normalizeWorkflowStatus(wf.status),
-    })),
+    recentWorkflows: apiResponse.recentWorkflows,
     // Derived fields
     status: getWorkerStatus(),
     currentTasksCount: apiResponse.activeTasks.length,

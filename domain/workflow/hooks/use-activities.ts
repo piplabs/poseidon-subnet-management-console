@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
+import type { ActivityStatus } from "@/lib/api/types"
 
 export interface Activity {
   id: string
   name: string
   workflowId: string
-  status: "completed" | "running" | "pending" | "failed"
+  status: ActivityStatus
   startTime: string
   duration: string
   worker: string
@@ -19,7 +20,7 @@ interface ApiActivityListResponse {
     workflowId: string
     type: string
     stepIndex: number
-    status: "Completed" | "Running" | "Pending" | "Failed"
+    status: ActivityStatus
     input: Record<string, unknown>
     output: Record<string, unknown>
     worker: string
@@ -41,19 +42,6 @@ function formatDuration(startTime: string, endTime: string | null): string {
   const mins = Math.floor(durationSec / 60)
   const secs = durationSec % 60
   return `${mins}m ${secs}s`
-}
-
-function normalizeStatus(apiStatus: string): Activity["status"] {
-  switch (apiStatus) {
-    case "Completed":
-      return "completed"
-    case "Running":
-      return "running"
-    case "Failed":
-      return "failed"
-    default:
-      return "pending"
-  }
 }
 
 async function fetchActivities(): Promise<Activity[]> {
@@ -119,7 +107,7 @@ async function fetchActivities(): Promise<Activity[]> {
     id: item.activityId,
     name: item.type,
     workflowId: item.workflowId,
-    status: normalizeStatus(item.status),
+    status: item.status,
     startTime: new Date(item.startedAt).toLocaleTimeString(),
     duration: formatDuration(item.startedAt, item.completedAt),
     worker: item.worker.substring(0, 12) + "...",

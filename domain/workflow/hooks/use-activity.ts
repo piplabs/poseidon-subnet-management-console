@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
-import type { ActivityDetailResponse } from "@/lib/api/types"
+import type { ActivityDetailResponse, ActivityStatus } from "@/lib/api/types"
 import {
-  normalizeActivityStatus,
   formatDurationMs,
   formatTime,
-  type ActivityStatus,
 } from "@/lib/api/transforms"
 
 export interface ActivityDetails {
@@ -67,7 +65,7 @@ async function fetchActivity(activityId: string): Promise<ActivityDetails> {
   return {
     id: apiResponse.activityId,
     type: apiResponse.type,
-    status: normalizeActivityStatus(apiResponse.status),
+    status: apiResponse.status,
     workflowId: apiResponse.workflowId,
     stepIndex: apiResponse.stepIndex,
     queueId: apiResponse.queueId,

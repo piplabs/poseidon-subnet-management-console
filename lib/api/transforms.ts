@@ -1,56 +1,13 @@
 /**
  * API Data Transformation Utilities
- * Converts API responses to frontend-friendly formats
+ * Format and display helpers for API data
  */
 
 import type {
-  WorkflowStatus as ApiWorkflowStatus,
-  ActivityStatus as ApiActivityStatus,
-  WorkerStatus as ApiWorkerStatus,
+  WorkflowStatus,
+  ActivityStatus,
+  WorkerStatus,
 } from "./types"
-
-// ============================================================================
-// Frontend Status Types (lowercase conventions)
-// ============================================================================
-
-export type WorkflowStatus =
-  | "created"
-  | "running"
-  | "paused"
-  | "pending"
-  | "completed"
-  | "failed"
-  | "terminated"
-
-export type ActivityStatus =
-  | "pending"
-  | "scheduled"
-  | "claimed"
-  | "running"
-  | "completed"
-  | "failed"
-
-export type WorkerStatus = "active" | "inactive" | "jailed"
-
-// ============================================================================
-// Status Normalization Functions
-// ============================================================================
-
-export function normalizeWorkflowStatus(
-  apiStatus: ApiWorkflowStatus
-): WorkflowStatus {
-  return apiStatus.toLowerCase() as WorkflowStatus
-}
-
-export function normalizeActivityStatus(
-  apiStatus: ApiActivityStatus
-): ActivityStatus {
-  return apiStatus.toLowerCase() as ActivityStatus
-}
-
-export function normalizeWorkerStatus(apiStatus: ApiWorkerStatus): WorkerStatus {
-  return apiStatus.toLowerCase() as WorkerStatus
-}
 
 // ============================================================================
 // Format Helper Functions
@@ -164,18 +121,18 @@ export function getWorkflowStatusColor(
   status: WorkflowStatus
 ): StatusColor {
   switch (status) {
-    case "completed":
+    case "Completed":
       return "green"
-    case "running":
+    case "Running":
       return "blue"
-    case "failed":
+    case "Failed":
       return "red"
-    case "terminated":
+    case "Terminated":
       return "orange"
-    case "paused":
+    case "Paused":
       return "yellow"
-    case "pending":
-    case "created":
+    case "Pending":
+    case "Created":
       return "gray"
     default:
       return "gray"
@@ -187,16 +144,16 @@ export function getWorkflowStatusColor(
  */
 export function getActivityStatusColor(status: ActivityStatus): StatusColor {
   switch (status) {
-    case "completed":
+    case "Completed":
       return "green"
-    case "running":
+    case "Running":
       return "blue"
-    case "failed":
+    case "Failed":
       return "red"
-    case "scheduled":
-    case "claimed":
+    case "Scheduled":
+    case "Claimed":
       return "yellow"
-    case "pending":
+    case "Pending":
       return "gray"
     default:
       return "gray"
@@ -208,11 +165,11 @@ export function getActivityStatusColor(status: ActivityStatus): StatusColor {
  */
 export function getWorkerStatusColor(status: WorkerStatus): StatusColor {
   switch (status) {
-    case "active":
+    case "Active":
       return "green"
-    case "inactive":
+    case "Inactive":
       return "gray"
-    case "jailed":
+    case "Jailed":
       return "red"
     default:
       return "gray"
@@ -231,8 +188,8 @@ export function isActiveWorker(
   lastHeartbeat: string,
   maxInactiveSeconds = 60
 ): boolean {
-  if (status === "jailed") return false
-  if (status === "inactive") return false
+  if (status === "Jailed") return false
+  if (status === "Inactive") return false
 
   const lastHeartbeatTime = new Date(lastHeartbeat).getTime()
   const now = Date.now()
@@ -245,33 +202,33 @@ export function isActiveWorker(
  * Check if workflow is completed
  */
 export function isCompletedWorkflow(status: WorkflowStatus): boolean {
-  return status === "completed"
+  return status === "Completed"
 }
 
 /**
  * Check if workflow is in terminal state
  */
 export function isTerminalWorkflow(status: WorkflowStatus): boolean {
-  return status === "completed" || status === "failed" || status === "terminated"
+  return status === "Completed" || status === "Failed" || status === "Terminated"
 }
 
 /**
  * Check if activity is running
  */
 export function isRunningActivity(status: ActivityStatus): boolean {
-  return status === "running"
+  return status === "Running"
 }
 
 /**
  * Check if activity is completed
  */
 export function isCompletedActivity(status: ActivityStatus): boolean {
-  return status === "completed"
+  return status === "Completed"
 }
 
 /**
  * Check if activity is in terminal state
  */
 export function isTerminalActivity(status: ActivityStatus): boolean {
-  return status === "completed" || status === "failed"
+  return status === "Completed" || status === "Failed"
 }

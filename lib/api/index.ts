@@ -1,7 +1,7 @@
 /**
  * API Module - Types and Utilities
  *
- * This module provides TypeScript types that match the API schema (swagger.json)
+ * This module provides TypeScript types
  * and utilities for transforming API responses to frontend-friendly formats.
  */
 
