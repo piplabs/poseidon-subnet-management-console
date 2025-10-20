@@ -8,6 +8,7 @@ import { Card } from "../../../common/components/card";
 import { Skeleton } from "../../../common/components/skeleton";
 import { Badge } from "../../../common/components/badge";
 import { useTaskQueue, useQueueActivities } from "@/domain/task/hooks";
+import { MainContent } from "@/common/components/layout/main-content";
 
 export default function QueueDetailPage({
   params,
@@ -23,7 +24,7 @@ export default function QueueDetailPage({
   );
 
   return (
-    <main className="p-6 space-y-6">
+    <MainContent>
       {queueLoading ? (
         <div className="space-y-2">
           <div className="flex items-center gap-4 text-sm">
@@ -275,6 +276,6 @@ export default function QueueDetailPage({
           </div>
         )}
       </div>
-    </main>
+    </MainContent>
   );
 }

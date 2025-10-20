@@ -1,184 +1,77 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/common/components/button"
+import { Input } from "@/common/components/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
 } from "@/common/components/dropdown-menu"
-import { Calendar, Search, ArrowUpDown, Plus, X, Filter } from "lucide-react"
+import { Button } from "@/common/components/button"
+import { Search, ChevronDown } from "lucide-react"
+import { useTaskQueueFilterContext } from "../contexts/task-queue-filter-context"
 
-export interface TaskFilter {
-  id: string
-  type: "dateRange" | "search" | "sort" | "depth"
-  label: string
-  displayLabel: string
-  value?: string
-}
-
-const dateRangeOptions = [
-  { value: "today", label: "Today" },
-  { value: "yesterday", label: "Yesterday" },
-  { value: "last7days", label: "Last 7 days" },
-  { value: "last30days", label: "Last 30 days" },
-  { value: "custom", label: "Custom range" },
-]
-
-const sortOptions = [
-  { value: "desc", label: "Descending" },
-  { value: "asc", label: "Ascending" },
+const includeOptions = [
+  { value: "activities", label: "Activities" },
+  { value: "workflows", label: "Workflows" },
 ]
 
 export function TaskFilterArea() {
-  const [filters, setFilters] = useState<TaskFilter[]>([
-    {
-      id: "default-sort",
-      type: "sort",
-      label: "Sort",
-      displayLabel: "Descending",
-      value: "desc",
-    },
-  ])
+  const {
+    queueId,
+    setQueueId,
+    includeActivities,
+    includeWorkflows,
+    toggleIncludeActivities,
+    toggleIncludeWorkflows,
+  } = useTaskQueueFilterContext()
 
-  const addOrUpdateFilter = (
-    type: TaskFilter["type"],
-    label: string,
-    displayLabel: string,
-    value: string
-  ) => {
-    const existingFilter = filters.find((f) => f.type === type)
+  const getIncludeLabel = () => {
+    const selected = []
+    if (includeActivities) selected.push("Activities")
+    if (includeWorkflows) selected.push("Workflows")
 
-    if (existingFilter) {
-      // Update existing filter
-      setFilters(
-        filters.map((f) =>
-          f.type === type ? { ...f, displayLabel, value } : f
-        )
-      )
-    } else {
-      // Add new filter
-      const newFilter: TaskFilter = {
-        id: `filter-${Date.now()}`,
-        type,
-        label,
-        displayLabel,
-        value,
-      }
-      setFilters([...filters, newFilter])
-    }
+    if (selected.length === 0) return "All Types"
+    if (selected.length === 2) return "All Types"
+    return selected[0]
   }
-
-  const removeFilter = (filterId: string) => {
-    setFilters(filters.filter((f) => f.id !== filterId))
-  }
-
-  const getFilterDisplay = (filter: TaskFilter) => {
-    const iconMap = {
-      sort: ArrowUpDown,
-      dateRange: Calendar,
-      search: Search,
-      depth: Filter,
-    }
-    const Icon = iconMap[filter.type]
-
-    return (
-      <div
-        key={filter.id}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-[#1E1F22FF] transition-colors text-sm h-7"
-      >
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-muted-foreground">{filter.label}</span>
-        <span className="text-foreground font-medium">{filter.displayLabel}</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            removeFilter(filter.id)
-          }}
-          className="ml-0.5 hover:bg-[#1E1F22FF] rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      </div>
-    )
-  }
-
-  const hasFilter = (type: string) => filters.some((f) => f.type === type)
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {filters.map((filter) => getFilterDisplay(filter))}
+      {/* Queue ID Search Input */}
+      <div className="relative w-[240px]">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search queue ID..."
+          value={queueId || ""}
+          onChange={(e) => setQueueId(e.target.value || undefined)}
+          className="pl-9 h-8 text-sm"
+        />
+      </div>
 
+      {/* Type Dropdown with Checkboxes */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5 h-7 text-sm border-border">
-            <Plus className="h-3.5 w-3.5" />
-            Add Filter
+          <Button variant="outline" size="sm" className="gap-2 h-8 text-sm">
+            <span>{getIncludeLabel()}</span>
+            <ChevronDown className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[200px]">
-          {/* Sort - simple item */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <ArrowUpDown className="mr-2 h-4 w-4" />
-              <span className={hasFilter("sort") ? "text-muted-foreground" : ""}>Sort</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {sortOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => addOrUpdateFilter("sort", "Sort", option.label, option.value)}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Date Range with submenu */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Calendar className="mr-2 h-4 w-4" />
-              <span className={hasFilter("dateRange") ? "text-muted-foreground" : ""}>Date Range</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {dateRangeOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => addOrUpdateFilter("dateRange", "Date Range", option.label, option.value)}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Search - simple item */}
-          <DropdownMenuItem
-            onClick={() => addOrUpdateFilter("search", "Search", "All Queues", "all")}
-            disabled={hasFilter("search")}
+        <DropdownMenuContent align="start" className="w-[180px]">
+          <DropdownMenuCheckboxItem
+            checked={includeActivities}
+            onCheckedChange={toggleIncludeActivities}
+            onSelect={(e) => e.preventDefault()}
           >
-            <Search className="mr-2 h-4 w-4" />
-            <span className={hasFilter("search") ? "text-muted-foreground" : ""}>Search</span>
-          </DropdownMenuItem>
-
-          {/* Depth - simple item */}
-          <DropdownMenuItem
-            onClick={() => addOrUpdateFilter("depth", "Depth", "All Depths", "all")}
-            disabled={hasFilter("depth")}
+            Activities
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={includeWorkflows}
+            onCheckedChange={toggleIncludeWorkflows}
+            onSelect={(e) => e.preventDefault()}
           >
-            <Filter className="mr-2 h-4 w-4" />
-            <span className={hasFilter("depth") ? "text-muted-foreground" : ""}>Depth</span>
-          </DropdownMenuItem>
+            Workflows
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

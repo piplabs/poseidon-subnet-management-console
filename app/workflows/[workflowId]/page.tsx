@@ -13,10 +13,15 @@ import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-statu
 import { WorkflowInfoCard } from "@/domain/workflow/components/workflow-info-card";
 import { WorkflowTimeline } from "@/domain/workflow/components/workflow-timeline";
 import { useWorkflow } from "@/domain/workflow/hooks/use-workflow";
-import { formatDurationMs, formatAddress, formatDateTime } from "@/lib/api/transforms";
+import {
+  formatDurationMs,
+  formatAddress,
+  formatDateTime,
+} from "@/lib/api/transforms";
 import { Activity, BarChart3, Circle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MainContent } from "@/common/components/layout/main-content";
 
 export default function WorkflowDetailPage({
   params,
@@ -28,35 +33,16 @@ export default function WorkflowDetailPage({
 
   if (error) {
     return (
-      <main className="p-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              Home
-            </Button>
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-sm">Workflow</span>
-        </div>
+      <MainContent>
         <div className="border border-border rounded-lg p-6">
           <div className="text-destructive">Error loading workflow details</div>
         </div>
-      </main>
+      </MainContent>
     );
   }
 
   return (
-    <main className="p-6 space-y-6">
-      <div className="flex items-center gap-2">
-        <Link href="/">
-          <Button variant="ghost" size="sm">
-            Home
-          </Button>
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm">Workflow</span>
-      </div>
-
+    <MainContent>
       {/* Workflow Header */}
       {isLoading ? (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -162,10 +148,7 @@ export default function WorkflowDetailPage({
                     </thead>
                     <tbody>
                       {[...Array(4)].map((_, i) => (
-                        <tr
-                          key={i}
-                          className="border-b border-border/50"
-                        >
+                        <tr key={i} className="border-b border-border/50">
                           <td className="py-3 px-4">
                             <Skeleton className="h-4 w-8" />
                           </td>
@@ -210,12 +193,13 @@ export default function WorkflowDetailPage({
                     </thead>
                     <tbody>
                       {workflow!.activities.map((activity) => {
-                        const duration = activity.completedAt && activity.startedAt
-                          ? formatDurationMs(
-                              new Date(activity.completedAt).getTime() -
-                              new Date(activity.startedAt).getTime()
-                            )
-                          : "-";
+                        const duration =
+                          activity.completedAt && activity.startedAt
+                            ? formatDurationMs(
+                                new Date(activity.completedAt).getTime() -
+                                  new Date(activity.startedAt).getTime()
+                              )
+                            : "-";
 
                         return (
                           <tr
@@ -321,6 +305,6 @@ export default function WorkflowDetailPage({
           </div>
         )}
       </div>
-    </main>
+    </MainContent>
   );
 }

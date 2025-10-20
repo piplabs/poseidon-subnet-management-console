@@ -5,6 +5,7 @@ import {
   formatTime,
   formatAddress,
 } from "@/lib/api/transforms"
+import { useWorkflowFilterContext } from "../contexts/workflow-filter-context"
 
 export interface Workflow {
   id: string
@@ -21,9 +22,45 @@ export interface Workflow {
   latestActivityId: string
 }
 
-async function fetchWorkflows(subnetId?: string): Promise<Workflow[]> {
-  // TODO: Replace with actual API call to GET /api/v1/workflows
-  // const response = await fetch(`/api/v1/workflows?page=1&pageSize=20`)
+async function fetchWorkflows(params: {
+  selectedStatuses: string[]
+  workflowType?: string
+  startTimeFrom?: string
+  startTimeTo?: string
+  sortBy?: string
+  page: number
+  pageSize: number
+  subnetId?: string
+}): Promise<Workflow[]> {
+  // Build query parameters
+  const queryParams = new URLSearchParams()
+
+  // Add status filter - join multiple statuses with comma
+  if (params.selectedStatuses.length > 0 && params.selectedStatuses.length < 5) {
+    queryParams.append("status", params.selectedStatuses.join(","))
+  }
+
+  if (params.workflowType) {
+    queryParams.append("type", params.workflowType)
+  }
+
+  if (params.startTimeFrom) {
+    queryParams.append("startTimeFrom", params.startTimeFrom)
+  }
+
+  if (params.startTimeTo) {
+    queryParams.append("startTimeTo", params.startTimeTo)
+  }
+
+  if (params.sortBy) {
+    queryParams.append("sortBy", params.sortBy)
+  }
+
+  queryParams.append("page", params.page.toString())
+  queryParams.append("pageSize", params.pageSize.toString())
+
+  // TODO: Replace with actual API call
+  // const response = await fetch(`/api/v1/workflows?${queryParams.toString()}`)
   // const apiResponse: WorkflowListResponse = await response.json()
 
   // Simulate API delay
@@ -103,8 +140,16 @@ async function fetchWorkflows(subnetId?: string): Promise<Workflow[]> {
     total: 4021,
   }
 
+  // Filter mock data based on selected statuses (for demo purposes)
+  let filteredItems = apiResponse.items
+  if (params.selectedStatuses.length > 0 && params.selectedStatuses.length < 5) {
+    filteredItems = filteredItems.filter((item) =>
+      params.selectedStatuses.includes(item.status)
+    )
+  }
+
   // Transform to FE format
-  return apiResponse.items.map((item) => ({
+  return filteredItems.map((item) => ({
     id: item.workflowId,
     type: item.type,
     definition: item.definition,
@@ -121,8 +166,20 @@ async function fetchWorkflows(subnetId?: string): Promise<Workflow[]> {
 }
 
 export function useWorkflows(subnetId?: string) {
+  const filterContext = useWorkflowFilterContext()
+
   return useQuery({
-    queryKey: ["workflows", subnetId],
-    queryFn: () => fetchWorkflows(subnetId),
+    queryKey: [
+      "workflows",
+      subnetId,
+      filterContext.selectedStatuses,
+      filterContext.workflowType,
+      filterContext.startTimeFrom,
+      filterContext.startTimeTo,
+      filterContext.sortBy,
+      filterContext.page,
+      filterContext.pageSize,
+    ],
+    queryFn: () => fetchWorkflows({ ...filterContext, subnetId }),
   })
 }

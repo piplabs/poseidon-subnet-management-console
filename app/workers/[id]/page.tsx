@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MainContent } from "@/common/components/layout/main-content";
 
 export default function WorkerDetailPage({
   params,
@@ -49,7 +50,7 @@ export default function WorkerDetailPage({
 
   if (isLoading) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         {/* Header Skeleton */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -112,34 +113,34 @@ export default function WorkerDetailPage({
             </div>
           </Card>
         </div>
-      </main>
+      </MainContent>
     );
   }
 
   if (error) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         <Card className="p-6">
           <div className="text-destructive">
             Error loading worker: {error.message}
           </div>
         </Card>
-      </main>
+      </MainContent>
     );
   }
 
   if (!worker) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         <Card className="p-6">
           <div className="text-muted-foreground">Worker not found</div>
         </Card>
-      </main>
+      </MainContent>
     );
   }
 
   return (
-    <main className="p-6 space-y-6">
+    <MainContent>
       {/* Worker Header */}
       <div className="flex items-start justify-between">
         <div className="space-y-2">
@@ -148,9 +149,9 @@ export default function WorkerDetailPage({
             <Badge
               variant="outline"
               className={
-                worker.status === "active"
+                worker.status === "Active"
                   ? "border-green-500/20 bg-green-500/10 text-green-500"
-                  : worker.status === "jailed"
+                  : worker.status === "Jailed"
                   ? "border-red-500/20 bg-red-500/10 text-red-500"
                   : "border-gray-500/20 bg-gray-500/10 text-gray-500"
               }
@@ -257,14 +258,12 @@ export default function WorkerDetailPage({
                 className={`flex h-2.5 w-2.5 flex-none rounded-full ${
                   worker.jailed
                     ? "bg-red-500"
-                    : worker.status === "active"
+                    : worker.status === "Active"
                     ? "bg-green-500"
                     : "bg-gray-500"
                 }`}
               />
-              <span className="capitalize">
-                {worker.jailed ? "Jailed" : worker.status}
-              </span>
+              <span>{worker.jailed ? "Jailed" : worker.status}</span>
             </div>
           </div>
         </div>
@@ -333,6 +332,6 @@ export default function WorkerDetailPage({
           )}
         </Card>
       </div>
-    </main>
+    </MainContent>
   );
 }
