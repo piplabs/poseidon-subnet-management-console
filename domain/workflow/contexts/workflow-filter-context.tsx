@@ -20,6 +20,7 @@ export interface WorkflowFilterActions {
   setSortBy: (sortBy: string | undefined) => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
+  loadMore: () => void
   resetFilters: () => void
 }
 
@@ -67,6 +68,10 @@ export function WorkflowFilterProvider({ children }: { children: React.ReactNode
     setState((prev) => ({ ...prev, pageSize, page: 1 }))
   }, [])
 
+  const loadMore = useCallback(() => {
+    setState((prev) => ({ ...prev, page: prev.page + 1 }))
+  }, [])
+
   const resetFilters = useCallback(() => {
     setState(initialState)
   }, [])
@@ -86,6 +91,7 @@ export function WorkflowFilterProvider({ children }: { children: React.ReactNode
       setSortBy={setSortBy}
       setPage={setPage}
       setPageSize={setPageSize}
+      loadMore={loadMore}
       resetFilters={resetFilters}
     >
       {children}

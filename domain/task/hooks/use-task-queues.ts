@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import type { QueueListResponse } from "@/lib/api/types"
 import {
   formatRelativeTime,
@@ -6,6 +6,7 @@ import {
   formatThroughput,
 } from "@/lib/api/transforms"
 import { useTaskQueueFilterContext } from "../contexts/task-queue-filter-context"
+import { useMemo } from "react"
 
 export interface TaskQueue {
   id: string
@@ -30,7 +31,7 @@ async function fetchTaskQueues(params: {
   page: number
   pageSize: number
   subnetId?: string
-}): Promise<TaskQueue[]> {
+}): Promise<QueueListResponse> {
   // Build query parameters
   const queryParams = new URLSearchParams()
 
@@ -109,8 +110,8 @@ async function fetchTaskQueues(params: {
         createdAt: "2025-10-15T08:45:00Z",
       },
     ],
-    page: 1,
-    pageSize: 50,
+    page: params.page, // Use the actual page from params
+    pageSize: params.pageSize,
     total: 5,
   }
 
@@ -122,37 +123,70 @@ async function fetchTaskQueues(params: {
     )
   }
 
-  // Transform to FE format
-  return filteredItems.map((item) => ({
-    id: item.queueId,
-    partitionCount: item.partitionCount,
-    pendingActivities: item.pendingActivities,
-    oldestPendingSince: item.oldestPendingSince,
-    avgWaitSec: item.avgWaitSec,
-    throughputPerMin: item.throughputPerMin,
-    createdAt: item.createdAt,
-    // Display-only fields
-    name: item.queueId,
-    oldestPendingActivity: formatRelativeTime(item.oldestPendingSince),
-    averageWaitTime: formatWaitTime(item.avgWaitSec),
-    throughput: formatThroughput(item.throughputPerMin),
-    currentDepth: item.partitionCount,
-  }))
+  // Return the response with pagination metadata
+  return {
+    ...apiResponse,
+    items: filteredItems,
+  }
 }
 
 export function useTaskQueues(subnetId?: string) {
   const filterContext = useTaskQueueFilterContext()
 
-  return useQuery({
+  const query = useInfiniteQuery({
     queryKey: [
       "taskQueues",
       subnetId,
       filterContext.queueId,
       filterContext.includeActivities,
       filterContext.includeWorkflows,
-      filterContext.page,
       filterContext.pageSize,
     ],
-    queryFn: () => fetchTaskQueues({ ...filterContext, subnetId }),
+    queryFn: ({ pageParam = 1 }) =>
+      fetchTaskQueues({
+        ...filterContext,
+        subnetId,
+        page: pageParam,
+      }),
+    getNextPageParam: (lastPage) => {
+      const currentPage = lastPage.page
+      const totalPages = Math.ceil(lastPage.total / lastPage.pageSize)
+      return currentPage < totalPages ? currentPage + 1 : undefined
+    },
+    initialPageParam: 1,
   })
+
+  const taskQueues = useMemo(() => {
+    if (!query.data) return []
+
+    return query.data.pages.flatMap((page) =>
+      page.items.map((item) => ({
+        id: item.queueId,
+        partitionCount: item.partitionCount,
+        pendingActivities: item.pendingActivities,
+        oldestPendingSince: item.oldestPendingSince,
+        avgWaitSec: item.avgWaitSec,
+        throughputPerMin: item.throughputPerMin,
+        createdAt: item.createdAt,
+        // Display-only fields
+        name: item.queueId,
+        oldestPendingActivity: formatRelativeTime(item.oldestPendingSince),
+        averageWaitTime: formatWaitTime(item.avgWaitSec),
+        throughput: formatThroughput(item.throughputPerMin),
+        currentDepth: item.partitionCount,
+      }))
+    )
+  }, [query.data])
+
+  const lastPage = query.data?.pages[query.data.pages.length - 1]
+
+  return {
+    data: taskQueues,
+    isLoading: query.isLoading,
+    error: query.error,
+    hasNextPage: query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    fetchNextPage: query.fetchNextPage,
+    total: lastPage?.total ?? 0,
+  }
 }

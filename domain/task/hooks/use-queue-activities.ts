@@ -8,8 +8,6 @@ export interface QueueActivity {
   workflowName: string
   status: "running" | "pending"
   queuedAt: string
-  priority: "high" | "normal" | "low"
-  estimatedDuration: string
 }
 
 async function fetchQueueActivities(queueId: string): Promise<QueueActivity[]> {
@@ -97,8 +95,7 @@ async function fetchQueueActivities(queueId: string): Promise<QueueActivity[]> {
       workflowName: workflow?.type || "Unknown",
       status: status,
       queuedAt: new Date(activity.startedAt).toLocaleTimeString(),
-      priority: "normal" as const, // API doesn't provide priority
-      estimatedDuration: "30s", // API doesn't provide estimated duration
+
     }
   })
 }

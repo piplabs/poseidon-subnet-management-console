@@ -53,10 +53,10 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
   const activity4Start = new Date(activity3End.getTime() + 5 * 1000) // 5s after prev (currently running)
 
   const apiResponse: WorkflowDetailResponse = {
-    workflowId: "0xabc123def456789",
+    workflowId: workflowId, // Use actual workflowId from params
     type: "DataProcessing",
-    definition: "0xdef456contract",
-    creator: "0xuser123456789abcdef",
+    definition: "0xdef456789abcdef123456789abcdef12",
+    creator: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
     status: "Running",
     createdAt: startTime.toISOString(),
     terminatedAt: "",
@@ -73,31 +73,31 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
     ],
     activities: [
       {
-        activityId: "0xactivity789abc",
+        activityId: "0x1a2b3c4d5e6f7890abcdef1234567890",
         stepIndex: 0,
         status: "Completed",
         startedAt: activity1Start.toISOString(),
         completedAt: activity1End.toISOString(),
-        logRef: "ipfs://QmX1Y2Z3...",
+        logRef: "ipfs://QmX1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M",
       },
       {
-        activityId: "0xactivity790abc",
+        activityId: "0x2b3c4d5e6f7890abcdef1234567890ab",
         stepIndex: 1,
         status: "Completed",
         startedAt: activity2Start.toISOString(),
         completedAt: activity2End.toISOString(),
-        logRef: "ipfs://QmA1B2C3...",
+        logRef: "ipfs://QmA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P",
       },
       {
-        activityId: "0xactivity791abc",
+        activityId: "0x3c4d5e6f7890abcdef1234567890abcd",
         stepIndex: 2,
         status: "Completed",
         startedAt: activity3Start.toISOString(),
         completedAt: activity3End.toISOString(),
-        logRef: "ipfs://QmD1E2F3...",
+        logRef: "ipfs://QmD1E2F3G4H5I6J7K8L9M0N1O2P3Q4R5S",
       },
       {
-        activityId: "0xactivity792abc",
+        activityId: "0x4d5e6f7890abcdef1234567890abcdef",
         stepIndex: 3,
         status: "Running",
         startedAt: activity4Start.toISOString(),
@@ -105,7 +105,7 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
         logRef: "",
       },
       {
-        activityId: "0xactivity793abc",
+        activityId: "0x5e6f7890abcdef1234567890abcdef12",
         stepIndex: 4,
         status: "Pending",
         startedAt: "",
@@ -113,7 +113,7 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
         logRef: "",
       },
       {
-        activityId: "0xactivity794abc",
+        activityId: "0x6f7890abcdef1234567890abcdef1234",
         stepIndex: 5,
         status: "Pending",
         startedAt: "",
@@ -123,15 +123,15 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
     ],
     workers: [
       {
-        worker: "0xworker999abc123def",
+        worker: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
         lastHeartbeatAt: new Date(now.getTime() - 10000).toISOString(), // 10s ago
       },
       {
-        worker: "0xworker888abc123def",
+        worker: "0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5",
         lastHeartbeatAt: new Date(now.getTime() - 15000).toISOString(), // 15s ago
       },
       {
-        worker: "0xworker777abc123def",
+        worker: "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
         lastHeartbeatAt: new Date(now.getTime() - 5000).toISOString(), // 5s ago
       },
     ],
