@@ -76,9 +76,9 @@ export function WorkflowsCardSkeleton() {
         <h3 className="text-xs text-muted-foreground">Workflows</h3>
 
         {/* Pie Chart Area */}
-        <div className="w-full h-[200px] flex items-center justify-center">
+        <div className="w-full flex items-center justify-center">
           <div className="relative">
-            <Skeleton className="h-[170px] w-[170px] rounded-full" />
+            <Skeleton className="h-[120px] w-[120px] rounded-full" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="space-y-1">
                 <Skeleton className="h-8 w-12 mx-auto" />
