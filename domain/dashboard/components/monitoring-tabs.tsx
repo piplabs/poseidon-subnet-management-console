@@ -7,6 +7,7 @@ import { TaskQueueTable } from "@/domain/task/components/task-queue-table"
 import { WorkflowFilterArea } from "@/domain/workflow/components/workflow-filter-area"
 import { TaskFilterArea } from "@/domain/task/components/task-filter-area"
 import { WorkflowFilterProvider } from "@/domain/workflow/contexts/workflow-filter-context"
+import { TaskQueueFilterProvider } from "@/domain/task/contexts/task-queue-filter-context"
 
 export function MonitoringTabs() {
   const [activeTab, setActiveTab] = useState("workflow")
@@ -28,10 +29,12 @@ export function MonitoringTabs() {
       </TabsContent>
 
       <TabsContent value="task-queue">
-        <div className="space-y-4">
-          <TaskFilterArea />
-          <TaskQueueTable />
-        </div>
+        <TaskQueueFilterProvider>
+          <div className="space-y-4">
+            <TaskFilterArea />
+            <TaskQueueTable />
+          </div>
+        </TaskQueueFilterProvider>
       </TabsContent>
     </Tabs>
   )

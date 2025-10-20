@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useTaskQueues } from "../hooks"
 
 export function TaskQueueTable({ subnetId }: { subnetId?: string }) {
-  const { data: taskQueues, isLoading, error } = useTaskQueues()
+  const { data: taskQueues, isLoading, error } = useTaskQueues(subnetId)
 
   if (isLoading) {
     return (

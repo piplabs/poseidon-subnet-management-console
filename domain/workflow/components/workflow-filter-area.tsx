@@ -12,6 +12,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuCheckboxItem,
 } from "@/common/components/dropdown-menu"
+import { DatePicker } from "@/common/components/date-picker"
 import { Calendar, User, CheckCircle, Plus, X } from "lucide-react"
 import { useWorkflowFilterContext } from "../contexts/workflow-filter-context"
 
@@ -32,7 +33,13 @@ const dateRangeOptions = [
 ]
 
 export function WorkflowFilterArea() {
-  const { selectedStatuses, setSelectedStatuses } = useWorkflowFilterContext()
+  const {
+    selectedStatuses,
+    setSelectedStatuses,
+    startTimeFrom,
+    startTimeTo,
+    setDateRange,
+  } = useWorkflowFilterContext()
 
   const toggleStatusFilter = (statusValue: string) => {
     const newStatuses = selectedStatuses.includes(statusValue)
@@ -52,6 +59,69 @@ export function WorkflowFilterArea() {
     }
   }
 
+  const handleDateRangeSelect = (rangeType: string) => {
+    const now = new Date()
+    let from: Date | undefined
+    let to: Date | undefined = now
+
+    switch (rangeType) {
+      case "today":
+        from = new Date(now.setHours(0, 0, 0, 0))
+        to = new Date(now.setHours(23, 59, 59, 999))
+        break
+      case "yesterday":
+        from = new Date(now.setDate(now.getDate() - 1))
+        from.setHours(0, 0, 0, 0)
+        to = new Date(from)
+        to.setHours(23, 59, 59, 999)
+        break
+      case "last7days":
+        from = new Date(now.setDate(now.getDate() - 7))
+        from.setHours(0, 0, 0, 0)
+        to = new Date()
+        break
+      case "last30days":
+        from = new Date(now.setDate(now.getDate() - 30))
+        from.setHours(0, 0, 0, 0)
+        to = new Date()
+        break
+      case "custom":
+        // TODO: Open date picker modal
+        return
+      default:
+        return
+    }
+
+    if (from && to) {
+      setDateRange(from.toISOString(), to.toISOString())
+    }
+  }
+
+  const getDateRangeLabel = () => {
+    if (!startTimeFrom && !startTimeTo) return null
+
+    const dateRangeOption = dateRangeOptions.find((opt) => {
+      const now = new Date()
+      switch (opt.value) {
+        case "today":
+          const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString()
+          return startTimeFrom?.startsWith(todayStart.split("T")[0])
+        case "last7days":
+          const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7))
+          return startTimeFrom && new Date(startTimeFrom) >= sevenDaysAgo
+        case "last30days":
+          const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30))
+          return startTimeFrom && new Date(startTimeFrom) >= thirtyDaysAgo
+        default:
+          return false
+      }
+    })
+
+    return dateRangeOption?.label || "Custom range"
+  }
+
+  const hasDateRangeFilter = startTimeFrom || startTimeTo
+
   const selectedStatusColors = statusOptions
     .filter((s) => selectedStatuses.includes(s.value))
     .map((s) => s.color)
@@ -62,7 +132,7 @@ export function WorkflowFilterArea() {
       {selectedStatuses.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-[#1E1F22FF] transition-colors text-sm h-7 cursor-pointer">
+            <button className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-[#1E1F22FF] transition-colors text-sm h-7">
               <CheckCircle className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground">Status</span>
               <span className="text-foreground font-medium">{getStatusDisplayLabel()}</span>
@@ -80,16 +150,16 @@ export function WorkflowFilterArea() {
                 </div>
               )}
 
-              <button
+              <span
                 onClick={(e) => {
                   e.stopPropagation()
                   setSelectedStatuses([])
                 }}
-                className="ml-0.5 hover:bg-[#1E1F22FF] rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+                className="ml-0.5 hover:bg-[#1E1F22FF] rounded-sm p-0.5 text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
               >
                 <X className="h-3 w-3" />
-              </button>
-            </div>
+              </span>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
             {statusOptions.map((option) => {
@@ -108,6 +178,54 @@ export function WorkflowFilterArea() {
                 </DropdownMenuCheckboxItem>
               )
             })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {/* Start Time Filter */}
+      {hasDateRangeFilter && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-[#1E1F22FF] transition-colors text-sm h-7">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground">Start Time</span>
+              <span className="text-foreground font-medium">{getDateRangeLabel()}</span>
+
+              <span
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDateRange(undefined, undefined)
+                }}
+                className="ml-0.5 hover:bg-[#1E1F22FF] rounded-sm p-0.5 text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
+              >
+                <X className="h-3 w-3" />
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[180px]">
+            {dateRangeOptions.slice(0, -1).map((option) => (
+              <DropdownMenuItem key={option.value} onClick={() => handleDateRangeSelect(option.value)}>
+                {option.label}
+              </DropdownMenuItem>
+            ))}
+
+            {/* Custom range with date picker sub-menu */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                Custom range
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent className="p-0">
+                  <DatePicker
+                    startDate={startTimeFrom ? new Date(startTimeFrom) : undefined}
+                    endDate={startTimeTo ? new Date(startTimeTo) : undefined}
+                    onApply={(start, end) => {
+                      setDateRange(start.toISOString(), end.toISOString())
+                    }}
+                  />
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -148,28 +266,42 @@ export function WorkflowFilterArea() {
             </DropdownMenuSub>
           )}
 
-          {/* Date Range with submenu */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Date Range</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {dateRangeOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      // TODO: Implement date range filter
-                      console.log("Date range:", option.value)
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
+          {/* Start Time with submenu */}
+          {!hasDateRangeFilter && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>Start Time</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  {dateRangeOptions.slice(0, -1).map((option) => (
+                    <DropdownMenuItem key={option.value} onClick={() => handleDateRangeSelect(option.value)}>
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+
+                  {/* Custom range with date picker sub-menu */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      Custom range
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent className="p-0">
+                        <DatePicker
+                          startDate={startTimeFrom ? new Date(startTimeFrom) : undefined}
+                          endDate={startTimeTo ? new Date(startTimeTo) : undefined}
+                          onApply={(start, end) => {
+                            setDateRange(start.toISOString(), end.toISOString())
+                          }}
+                        />
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+          )}
 
           {/* Author - simple item */}
           <DropdownMenuItem

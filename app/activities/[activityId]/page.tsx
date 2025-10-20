@@ -14,6 +14,7 @@ import { Skeleton } from "@/common/components/skeleton";
 import { useActivity } from "@/domain/workflow/hooks";
 import { BarChart3, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { MainContent } from "@/common/components/layout/main-content";
 
 export default function ActivityDetailPage({
   params,
@@ -24,39 +25,39 @@ export default function ActivityDetailPage({
 
   if (isLoading) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         <Skeleton className="h-12 w-48" />
         <Skeleton className="h-96 w-full" />
-      </main>
+      </MainContent>
     );
   }
 
   if (error) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         <Card className="p-6">
           <div className="text-destructive">
             Error loading activity: {error.message}
           </div>
         </Card>
-      </main>
+      </MainContent>
     );
   }
 
   if (!activity) {
     return (
-      <main className="p-6 space-y-6">
+      <MainContent>
         <Card className="p-6">
           <div className="text-muted-foreground">Activity not found</div>
         </Card>
-      </main>
+      </MainContent>
     );
   }
 
-  const isFailed = activity.status === "failed";
+  const isFailed = activity.status === "Failed";
 
   return (
-    <main className="p-6 space-y-6">
+    <MainContent>
       <div className="flex items-center gap-2">
         <Link href="/">
           <Button variant="ghost" size="sm">
@@ -202,6 +203,6 @@ export default function ActivityDetailPage({
           </AccordionItem>
         </Accordion>
       </Card>
-    </main>
+    </MainContent>
   );
 }

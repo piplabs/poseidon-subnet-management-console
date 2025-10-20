@@ -7,15 +7,16 @@ import { MonitoringTabs } from "@/domain/dashboard/components/monitoring-tabs";
 import {
   ObservabilityCardSkeleton,
   MetricsCardSkeleton,
-  WorkflowsCardSkeleton
+  WorkflowsCardSkeleton,
 } from "@/domain/dashboard/components/dashboard-card-skeletons";
 import { useDashboardMetrics } from "@/domain/dashboard/hooks";
+import { MainContent } from "@/common/components/layout/main-content";
 
 export default function HomePage() {
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
 
   return (
-    <main className="p-6 space-y-6">
+    <MainContent>
       {/* Dashboard Header */}
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -64,6 +65,6 @@ export default function HomePage() {
 
         <MonitoringTabs />
       </div>
-    </main>
+    </MainContent>
   );
 }
