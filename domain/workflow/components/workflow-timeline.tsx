@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/common/components/tooltip";
+import { cn } from "../../../lib/utils";
 
 interface WorkflowTimelineProps {
   workflowId: string;
@@ -231,127 +232,12 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   // Dynamic height based on view mode
   const timelineHeight = viewMode === "expanded" ? "h-96" : "h-48";
   const timelineHeightPx = viewMode === "expanded" ? 384 : 192;
+  // 60: bar label, height itself + gap between bars
+  const fitTimelineHeightForContent = 60 * eventsWithRelativeTime.length;
 
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 h-8 text-xs bg-transparent"
-            onClick={() =>
-              setViewMode(viewMode === "minimized" ? "expanded" : "minimized")
-            }
-          >
-            {viewMode === "expanded" ? (
-              <Minimize2 className="h-3 w-3" />
-            ) : (
-              <Expand className="h-3 w-3" />
-            )}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 h-8 text-xs bg-transparent"
-              >
-                <Filter className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {/* Status submenu */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  <span>Status</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56">
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-orange-500" />
-                      <span>Backlog</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
-                      <span>Proposal</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
-                      <span>Design Ready</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full border-2 border-gray-400" />
-                      <span>Project Kickoff</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
-                      <span>In Progress: on track</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                      <span>In Progress: at risk</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-red-500" />
-                      <span>In Progress: off track</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Maintenance</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                      <span>Completed</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-gray-500" />
-                      <span>Paused</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-gray-500" />
-                      <span>Canceled</span>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              {/* Date Range */}
-              <DropdownMenuItem>
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Date Range</span>
-              </DropdownMenuItem>
-
-              {/* Author */}
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Author</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
         {/* Timeline Container */}
         <div className="relative bg-card border border-border rounded-lg p-4">
           {/* Timeline boundaries */}
@@ -365,10 +251,16 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
           </div>
 
           {/* Timeline visualization - Scrollable wrapper */}
-          <div className="overflow-x-auto overflow-y-visible bg-background/50 rounded border border-border/50">
+          <div
+            className={cn(
+              "overflow-x-auto bg-background/50 rounded border border-border/50",
+              viewMode === "expanded" ? "max-h-96" : "max-h-60"
+            )}
+          >
             <div
-              className={`relative ${timelineHeight}`}
+              className={`relative`}
               style={{
+                height: `${fitTimelineHeightForContent}px`,
                 width: `${timelineWidthPx}px`,
                 minWidth: `${timelineWidthPx}px`,
               }}
@@ -487,7 +379,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
 
             {/* Time markers - X-axis with drag zoom */}
             <div
-              className={`relative mt-2 text-[10px] hover:cursor-ew-resize h-4 font-mono text-muted-foreground select-none`}
+              className={`sticky bottom-0 mt-2 text-[10px] hover:cursor-ew-resize h-4 font-mono text-muted-foreground select-none`}
               style={{
                 width: `${timelineWidthPx}px`,
                 minWidth: `${timelineWidthPx}px`,
