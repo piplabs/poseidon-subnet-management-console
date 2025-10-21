@@ -250,9 +250,8 @@ export function Header() {
                           style={{ backgroundColor: "#1E1F22" }}
                           animate={{ y: selectedIndex * 48 }}
                           transition={{
-                            type: "spring",
-                            damping: 25,
-                            stiffness: 400,
+                            duration: 0.2,
+                            ease: [0.4, 0, 0.2, 1],
                           }}
                         />
                         <div className="relative flex flex-col p-2">
