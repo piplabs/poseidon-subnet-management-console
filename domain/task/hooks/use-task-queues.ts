@@ -4,6 +4,7 @@ import {
   formatRelativeTime,
   formatWaitTime,
   formatThroughput,
+  formatDateTime,
 } from "@/lib/api/transforms"
 import { useTaskQueueFilterContext } from "../contexts/task-queue-filter-context"
 import { useMemo } from "react"
@@ -23,6 +24,7 @@ export interface TaskQueue {
   averageWaitTime: string
   throughput: string
   currentDepth: number
+  createdAtFormatted: string
 }
 
 async function fetchTaskQueues(params: {
@@ -180,6 +182,7 @@ export function useTaskQueues(subnetId?: string) {
         averageWaitTime: formatWaitTime(item.avgWaitSec),
         throughput: formatThroughput(item.throughputPerMin),
         currentDepth: item.partitionCount,
+        createdAtFormatted: formatDateTime(item.createdAt),
       }))
     )
   }, [query.data])

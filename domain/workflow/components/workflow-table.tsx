@@ -86,11 +86,17 @@ export function WorkflowTable({ subnetId }: { subnetId?: string }) {
                   <Link href={`/workflows/${workflow.id}`} className="block">
                     <div className="flex items-start gap-4">
                       {/* Column 1: ID and Type */}
-                      <div className="min-w-[140px]">
-                        <div className="font-mono text-sm font-medium">
+                      <div className="w-[200px]">
+                        <div
+                          className="font-mono text-sm font-medium truncate"
+                          title={workflow.id}
+                        >
                           {workflow.id}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
+                        <div
+                          className="text-xs text-muted-foreground mt-0.5 truncate"
+                          title={workflow.type}
+                        >
                           {workflow.type}
                         </div>
                       </div>
@@ -106,8 +112,13 @@ export function WorkflowTable({ subnetId }: { subnetId?: string }) {
                                 ? "bg-green-500"
                                 : workflow.status === "Failed"
                                 ? "bg-red-500"
-                                : workflow.status === "Pending"
+                                : workflow.status === "Terminated"
+                                ? "bg-orange-500"
+                                : workflow.status === "Paused"
                                 ? "bg-yellow-500"
+                                : workflow.status === "Pending" ||
+                                  workflow.status === "Created"
+                                ? "bg-gray-500"
                                 : "bg-gray-500"
                             }`}
                           />
@@ -120,25 +131,32 @@ export function WorkflowTable({ subnetId }: { subnetId?: string }) {
                         </div>
                       </div>
 
-                      {/* Column 3: Activities count */}
-                      <div className="min-w-[120px]">
+                      {/* Column 3: Progress and Duration */}
+                      <div className="min-w-[140px]">
                         <div className="text-sm">
-                          {workflow.totalSteps || 0} activities
+                          {workflow.totalSteps > 0
+                            ? `${workflow.currentStep}/${workflow.totalSteps} steps`
+                            : workflow.totalSteps === 0
+                            ? "No steps"
+                            : "-"}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          Duration: {workflow.duration || "-"}
+                          {workflow.duration !== "-"
+                            ? `Duration: ${workflow.duration}`
+                            : "Running..."}
                         </div>
                       </div>
 
-                      {/* Column 4: User */}
+                      {/* Column 4: Creator */}
                       <div className="flex-1 text-right">
                         <div className="text-sm text-muted-foreground">
-                          {workflow.startTime
-                            ?.split("(")[1]
-                            ?.replace(")", "") || "-"}
+                          Creator
                         </div>
-                        <div className="font-mono text-xs text-muted-foreground mt-0.5">
-                          {workflow.user || "-"}
+                        <div
+                          className="font-mono text-xs text-muted-foreground mt-0.5 truncate"
+                          title={workflow.user}
+                        >
+                          {workflow.user || "System"}
                         </div>
                       </div>
                     </div>

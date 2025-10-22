@@ -73,6 +73,7 @@ async function fetchWorkflows(params: {
     }
 
     apiResponse = await response.json()
+    console.log("apiResponse", apiResponse)
   } else {
     // Simulate API delay for mock data
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -203,10 +204,10 @@ export function useWorkflows(subnetId?: string) {
         endTime: item.endedAt ? formatTime(item.endedAt) : null,
         duration: formatDuration(item.durationSec),
         durationSec: item.durationSec,
-        user: formatAddress(item.creator),
+        user: item.creator ? formatAddress(item.creator) : "",
         currentStep: item.currentStep,
         totalSteps: item.totalSteps,
-        latestActivityId: item.latestActivityId,
+        latestActivityId: item.latestActivityId || "",
       }))
     )
   }, [query.data])
