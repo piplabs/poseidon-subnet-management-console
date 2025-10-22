@@ -232,39 +232,13 @@ export default function QueueDetailPage({
                           </Badge>
                         </div>
 
-                        {/* Priority */}
-                        <div className="min-w-[100px]">
-                          <Badge
-                            variant="outline"
-                            className={
-                              activity.priority === "high"
-                                ? "border-destructive/20 bg-destructive/10 text-destructive"
-                                : activity.priority === "low"
-                                ? "border-muted bg-muted text-muted-foreground"
-                                : "border-primary/20 bg-primary/10 text-primary"
-                            }
-                          >
-                            {activity.priority}
-                          </Badge>
-                        </div>
-
                         {/* Queued Time */}
-                        <div className="min-w-[120px]">
+                        <div className="flex-1 text-right">
                           <div className="text-sm text-muted-foreground">
                             Queued at
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {activity.queuedAt}
-                          </div>
-                        </div>
-
-                        {/* Estimated Duration */}
-                        <div className="flex-1 text-right">
-                          <div className="text-sm text-muted-foreground">
-                            Est. Duration
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {activity.estimatedDuration}
                           </div>
                         </div>
                       </div>

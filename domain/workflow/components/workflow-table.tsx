@@ -4,7 +4,14 @@ import { useWorkflows } from "@/domain/workflow/hooks";
 import Link from "next/link";
 
 export function WorkflowTable({ subnetId }: { subnetId?: string }) {
-  const { data: workflows, isLoading, error } = useWorkflows(subnetId);
+  const {
+    data: workflows,
+    isLoading,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useWorkflows(subnetId);
 
   if (isLoading) {
     return (
@@ -142,6 +149,18 @@ export function WorkflowTable({ subnetId }: { subnetId?: string }) {
           </tbody>
         </table>
       </div>
+
+      {hasNextPage && (
+        <button
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          className="w-full py-3 border border-border rounded-lg hover:bg-[#1E1F22FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="text-sm text-muted-foreground">
+            {isFetchingNextPage ? "Loading..." : "Load More"}
+          </span>
+        </button>
+      )}
     </div>
   );
 }

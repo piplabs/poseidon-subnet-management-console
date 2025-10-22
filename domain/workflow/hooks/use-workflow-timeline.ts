@@ -30,13 +30,20 @@ async function fetchWorkflowTimeline(workflowId: string): Promise<TimelineEvent[
     {
       id: "event-002",
       name: "ProcessTransaction",
-      startTime: workflowStart + 125,
-      endTime: workflowStart + 450, // 325ms duration
-      status: "running",
+      startTime: workflowStart + 135, // 10ms gap
+      endTime: workflowStart + 280, // 145ms duration
+      status: "success",
     },
     {
       id: "event-003",
       name: "SendConfirmation",
+      startTime: workflowStart + 290, // 10ms gap
+      endTime: workflowStart + 400, // 110ms duration
+      status: "running",
+    },
+    {
+      id: "event-004",
+      name: "UpdateInventory",
       startTime: 0,
       endTime: 0,
       status: "pending",

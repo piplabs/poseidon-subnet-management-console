@@ -19,6 +19,7 @@ export interface TaskQueueFilterActions {
   toggleIncludeWorkflows: () => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
+  loadMore: () => void
   resetFilters: () => void
 }
 
@@ -66,6 +67,10 @@ export function TaskQueueFilterProvider({ children }: { children: React.ReactNod
     setState((prev) => ({ ...prev, pageSize, page: 1 }))
   }, [])
 
+  const loadMore = useCallback(() => {
+    setState((prev) => ({ ...prev, page: prev.page + 1 }))
+  }, [])
+
   const resetFilters = useCallback(() => {
     setState(initialState)
   }, [])
@@ -84,6 +89,7 @@ export function TaskQueueFilterProvider({ children }: { children: React.ReactNod
       toggleIncludeWorkflows={toggleIncludeWorkflows}
       setPage={setPage}
       setPageSize={setPageSize}
+      loadMore={loadMore}
       resetFilters={resetFilters}
     >
       {children}

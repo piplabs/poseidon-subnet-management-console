@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
 import {
   formatDuration,
@@ -6,6 +6,7 @@ import {
   formatAddress,
 } from "@/lib/api/transforms"
 import { useWorkflowFilterContext } from "../contexts/workflow-filter-context"
+import { useMemo } from "react"
 
 export interface Workflow {
   id: string
@@ -31,7 +32,7 @@ async function fetchWorkflows(params: {
   page: number
   pageSize: number
   subnetId?: string
-}): Promise<Workflow[]> {
+}): Promise<WorkflowListResponse> {
   // Build query parameters
   const queryParams = new URLSearchParams()
 
@@ -135,8 +136,8 @@ async function fetchWorkflows(params: {
         latestActivityId: "0xactivity795",
       },
     ],
-    page: 1,
-    pageSize: 20,
+    page: params.page, // Use the actual page from params
+    pageSize: params.pageSize,
     total: 4021,
   }
 
@@ -148,27 +149,17 @@ async function fetchWorkflows(params: {
     )
   }
 
-  // Transform to FE format
-  return filteredItems.map((item) => ({
-    id: item.workflowId,
-    type: item.type,
-    definition: item.definition,
-    status: item.status,
-    startTime: formatTime(item.startedAt),
-    endTime: item.endedAt ? formatTime(item.endedAt) : null,
-    duration: formatDuration(item.durationSec),
-    durationSec: item.durationSec,
-    user: formatAddress(item.creator),
-    currentStep: item.currentStep,
-    totalSteps: item.totalSteps,
-    latestActivityId: item.latestActivityId,
-  }))
+  // Return the response with pagination metadata
+  return {
+    ...apiResponse,
+    items: filteredItems,
+  }
 }
 
 export function useWorkflows(subnetId?: string) {
   const filterContext = useWorkflowFilterContext()
 
-  return useQuery({
+  const query = useInfiniteQuery({
     queryKey: [
       "workflows",
       subnetId,
@@ -177,9 +168,52 @@ export function useWorkflows(subnetId?: string) {
       filterContext.startTimeFrom,
       filterContext.startTimeTo,
       filterContext.sortBy,
-      filterContext.page,
       filterContext.pageSize,
     ],
-    queryFn: () => fetchWorkflows({ ...filterContext, subnetId }),
+    queryFn: ({ pageParam = 1 }) =>
+      fetchWorkflows({
+        ...filterContext,
+        subnetId,
+        page: pageParam,
+      }),
+    getNextPageParam: (lastPage) => {
+      const currentPage = lastPage.page
+      const totalPages = Math.ceil(lastPage.total / lastPage.pageSize)
+      return currentPage < totalPages ? currentPage + 1 : undefined
+    },
+    initialPageParam: 1,
   })
+
+  const workflows = useMemo(() => {
+    if (!query.data) return []
+
+    return query.data.pages.flatMap((page) =>
+      page.items.map((item) => ({
+        id: item.workflowId,
+        type: item.type,
+        definition: item.definition,
+        status: item.status,
+        startTime: formatTime(item.startedAt),
+        endTime: item.endedAt ? formatTime(item.endedAt) : null,
+        duration: formatDuration(item.durationSec),
+        durationSec: item.durationSec,
+        user: formatAddress(item.creator),
+        currentStep: item.currentStep,
+        totalSteps: item.totalSteps,
+        latestActivityId: item.latestActivityId,
+      }))
+    )
+  }, [query.data])
+
+  const lastPage = query.data?.pages[query.data.pages.length - 1]
+
+  return {
+    data: workflows,
+    isLoading: query.isLoading,
+    error: query.error,
+    hasNextPage: query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    fetchNextPage: query.fetchNextPage,
+    total: lastPage?.total ?? 0,
+  }
 }
