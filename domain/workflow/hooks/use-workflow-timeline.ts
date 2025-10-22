@@ -5,8 +5,8 @@ import type { ActivityStatus } from "@/lib/api/types"
 export interface TimelineEvent {
   id: string
   name: string
-  startTime: number // milliseconds
-  endTime: number // milliseconds
+  startTime: number // seconds
+  endTime: number // seconds
   status: "success" | "error" | "running" | "pending"
 }
 
@@ -40,19 +40,18 @@ export function useWorkflowTimeline(workflowId: string) {
       return []
     }
 
-    // Transform activities into timeline events
+    // Transform activities into timeline events (convert to seconds)
     return workflowQuery.data.activities.map((activity) => {
-      console.log("activity", activity)
-      const startTime = new Date(activity.startedAt).getTime()
-      const endTime = activity.completedAt
+      const startTimeMs = new Date(activity.startedAt).getTime()
+      const endTimeMs = activity.completedAt
         ? new Date(activity.completedAt).getTime()
         : 0
 
       return {
         id: activity.activityId,
         name: `Step ${activity.stepIndex + 1}`,
-        startTime,
-        endTime,
+        startTime: Math.floor(startTimeMs / 1000), // Convert to seconds
+        endTime: Math.floor(endTimeMs / 1000), // Convert to seconds
         status: mapActivityStatus(activity.status),
       }
     })

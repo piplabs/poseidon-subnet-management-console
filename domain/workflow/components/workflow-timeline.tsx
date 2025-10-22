@@ -147,60 +147,55 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
     ? formatTimestamp(Date.now())
     : formatTimestamp(minStartTime + maxRelativeTime);
 
-  // Calculate timeline dimensions with dynamic zoom
-  // The zoom level determines how many pixels per millisecond
-  // Lower zoomLevel = more zoomed in = more pixels per ms
-  const pixelsPerMs = 500 / zoomLevel; // at 100ms zoom: 50px per ms, at 10ms zoom: 500px per ms
+  // Calculate timeline dimensions with dynamic zoom (now working in SECONDS)
+  // The zoom level determines how many pixels per second
+  // Lower zoomLevel = more zoomed in = more pixels per second
+  const pixelsPerSec = 500 / zoomLevel; // at 100 zoom: 5px per sec, at 10 zoom: 50px per sec
 
   // Calculate actual timeline width in pixels based on data
-  const timelineWidthPx = maxRelativeTime * pixelsPerMs;
+  const timelineWidthPx = maxRelativeTime * pixelsPerSec;
 
-  // Generate time markers with appropriate intervals based on zoom
-  // Adjust marker interval to keep reasonable spacing
-  let markerInterval = Math.max(10, Math.round(zoomLevel / 10) * 10); // Start with rounded zoom level
-  const minMarkerSpacingPx = 100; // Minimum pixels between markers (increased)
-  const maxMarkerSpacingPx = 200; // Maximum pixels between markers
-  let currentMarkerSpacing = markerInterval * pixelsPerMs;
+  // Generate time markers with appropriate intervals (in SECONDS)
+  let markerInterval = Math.max(10, Math.round(maxRelativeTime / 10)); // Start with ~10 markers
+  const minMarkerSpacingPx = 80;
+  const maxMarkerSpacingPx = 150;
+  let currentMarkerSpacing = markerInterval * pixelsPerSec;
 
-  // If markers are too close, increase interval (by clean multiples)
-  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < 10000) {
+  // If markers are too close, increase interval
+  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < maxRelativeTime) {
     if (markerInterval < 10) {
       markerInterval = 10;
-    } else if (markerInterval < 50) {
+    } else if (markerInterval < 30) {
       markerInterval += 10;
-    } else if (markerInterval < 100) {
-      markerInterval += 50;
-    } else if (markerInterval < 500) {
-      markerInterval += 100;
+    } else if (markerInterval < 60) {
+      markerInterval += 30;
+    } else if (markerInterval < 300) {
+      markerInterval += 60;
     } else {
-      markerInterval += 500;
+      markerInterval += 300;
     }
-    currentMarkerSpacing = markerInterval * pixelsPerMs;
+    currentMarkerSpacing = markerInterval * pixelsPerSec;
   }
 
-  // If markers are too far, decrease interval (by clean multiples)
+  // If markers are too far, decrease interval
   while (currentMarkerSpacing > maxMarkerSpacingPx && markerInterval > 10) {
     if (markerInterval <= 10) {
       break;
-    } else if (markerInterval <= 50) {
+    } else if (markerInterval <= 30) {
       markerInterval -= 10;
-    } else if (markerInterval <= 100) {
-      markerInterval -= 50;
-    } else if (markerInterval <= 500) {
-      markerInterval -= 100;
+    } else if (markerInterval <= 60) {
+      markerInterval -= 30;
+    } else if (markerInterval <= 300) {
+      markerInterval -= 60;
     } else {
-      markerInterval -= 500;
+      markerInterval -= 300;
     }
-    currentMarkerSpacing = markerInterval * pixelsPerMs;
-    if (markerInterval < 10) {
-      markerInterval = 10;
-      break;
-    }
+    currentMarkerSpacing = markerInterval * pixelsPerSec;
   }
 
   const markerCount = Math.ceil(maxRelativeTime / markerInterval);
   const timeMarkers = Array.from(
-    { length: markerCount + 1 },
+    { length: Math.min(markerCount + 1, 20) },
     (_, i) => i * markerInterval
   );
 
@@ -271,7 +266,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               {/* Grid lines - positioned absolutely based on time values */}
               <div className="absolute inset-0">
                 {timeMarkers.map((time, i) => {
-                  const positionPx = time * pixelsPerMs;
+                  const positionPx = time * pixelsPerSec;
                   return (
                     <div
                       key={i}
@@ -284,14 +279,14 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
 
               {/* "Now" indicator - only show if current time is within timeline range */}
               {(() => {
-                const now = Date.now();
+                const now = Math.floor(Date.now() / 1000); // Convert to seconds
                 const nowRelative = now - minStartTime;
                 const isNowInRange =
                   nowRelative >= 0 && nowRelative <= maxRelativeTime;
 
                 if (!isNowInRange) return null;
 
-                const nowPositionPx = nowRelative * pixelsPerMs;
+                const nowPositionPx = nowRelative * pixelsPerSec;
 
                 return (
                   <div
@@ -308,14 +303,14 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                   // For pending events, show a small hatched box at the end
                   const isPending = event.isPending;
 
-                  // Calculate position in pixels
+                  // Calculate position in pixels (already in seconds)
                   const leftPx = isPending
-                    ? completedMaxTime * pixelsPerMs + 10 // Just after the last completed event
-                    : event.relativeStart * pixelsPerMs;
+                    ? completedMaxTime * pixelsPerSec + 10 // Just after the last completed event
+                    : event.relativeStart * pixelsPerSec;
 
                   const widthPx = isPending
-                    ? 100 * pixelsPerMs // Pending events: 100ms width
-                    : (event.relativeEnd - event.relativeStart) * pixelsPerMs;
+                    ? 30 * pixelsPerSec // Pending events: 30 seconds width
+                    : (event.relativeEnd - event.relativeStart) * pixelsPerSec;
 
                   const duration = event.relativeEnd - event.relativeStart;
 
@@ -364,9 +359,9 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                               <div>ID: {event.id}</div>
                               {!isPending && (
                                 <>
-                                  <div>Start: {event.relativeStart}ms</div>
-                                  <div>End: {event.relativeEnd}ms</div>
-                                  <div>Duration: {duration}ms</div>
+                                  <div>Start: {event.relativeStart}s</div>
+                                  <div>End: {event.relativeEnd}s</div>
+                                  <div>Duration: {duration}s</div>
                                 </>
                               )}
                               <div>Status: {event.status}</div>
@@ -392,14 +387,14 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               onMouseUp={handleXAxisMouseUp}
             >
               {timeMarkers.map((time, i) => {
-                const positionPx = i === 0 ? 16 : time * pixelsPerMs;
+                const positionPx = i === 0 ? 16 : time * pixelsPerSec;
                 return (
                   <span
                     key={i}
                     className="absolute -translate-x-1/2"
                     style={{ left: `${positionPx}px` }}
                   >
-                    {time}ms
+                    {time}s
                   </span>
                 );
               })}
