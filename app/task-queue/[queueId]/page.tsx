@@ -1,9 +1,7 @@
 "use client";
 
 import { Clock, Activity, Users, TrendingUp } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "../../../common/components/button";
 import { Card } from "../../../common/components/card";
 import { Skeleton } from "../../../common/components/skeleton";
 import { Badge } from "../../../common/components/badge";

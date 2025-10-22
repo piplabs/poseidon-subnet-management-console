@@ -73,7 +73,6 @@ async function fetchWorkflows(params: {
     }
 
     apiResponse = await response.json()
-    console.log("apiResponse", apiResponse)
   } else {
     // Simulate API delay for mock data
     await new Promise((resolve) => setTimeout(resolve, 1000))
