@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/common/components/button";
 import { Skeleton } from "@/common/components/skeleton";
 import { useWorkflowTimeline } from "@/domain/workflow/hooks";
 import {
@@ -33,10 +32,13 @@ interface WorkflowTimelineProps {
   workflowId: string;
 }
 
+type TimeUnit = "ms" | "s" | "m" | "h";
+
 export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   const [viewMode, setViewMode] = useState<"minimized" | "expanded">(
     "minimized"
   );
+  const [selectedUnit, setSelectedUnit] = useState<TimeUnit>("s"); // Default to seconds
   const [zoomLevel, setZoomLevel] = useState(100); // Starting interval in ms
   const [isDraggingXAxis, setIsDraggingXAxis] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
@@ -128,8 +130,44 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   );
   const hasPendingEvents = eventsWithRelativeTime.some((e) => e.isPending);
   const maxRelativeTime = hasPendingEvents
-    ? completedMaxTime + 100 // Add 100ms for pending events
+    ? completedMaxTime + 100 // Add 100 for pending events (in current unit)
     : completedMaxTime;
+
+  // Convert time values from seconds to selected unit
+  const convertToSelectedUnit = (seconds: number): number => {
+    switch (selectedUnit) {
+      case "ms":
+        return seconds * 1000; // seconds to milliseconds
+      case "s":
+        return seconds; // already in seconds
+      case "m":
+        return seconds / 60; // seconds to minutes
+      case "h":
+        return seconds / 3600; // seconds to hours
+      default:
+        return seconds;
+    }
+  };
+
+  // Convert back from selected unit to seconds (for calculations)
+  const convertFromSelectedUnit = (value: number): number => {
+    switch (selectedUnit) {
+      case "ms":
+        return value / 1000; // milliseconds to seconds
+      case "s":
+        return value; // already in seconds
+      case "m":
+        return value * 60; // minutes to seconds
+      case "h":
+        return value * 3600; // hours to seconds
+      default:
+        return value;
+    }
+  };
+
+  // Convert all time values to selected unit for display
+  const maxRelativeTimeInUnit = convertToSelectedUnit(maxRelativeTime);
+  const completedMaxTimeInUnit = convertToSelectedUnit(completedMaxTime);
 
   // Format absolute timestamp to readable format
   const formatTimestamp = (timestamp: number) => {
@@ -147,53 +185,66 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
     ? formatTimestamp(Date.now())
     : formatTimestamp(minStartTime + maxRelativeTime);
 
-  // Calculate timeline dimensions with dynamic zoom (now working in SECONDS)
-  // The zoom level determines how many pixels per second
-  // Lower zoomLevel = more zoomed in = more pixels per second
-  const pixelsPerSec = 500 / zoomLevel; // at 100 zoom: 5px per sec, at 10 zoom: 50px per sec
+  // Calculate timeline dimensions with dynamic zoom (working with selected unit)
+  // The zoom level determines how many pixels per unit
+  const pixelsPerUnit = 500 / zoomLevel; // at 100 zoom: 5px per unit
 
   // Calculate actual timeline width in pixels based on data
-  const timelineWidthPx = maxRelativeTime * pixelsPerSec;
+  const timelineWidthPx = maxRelativeTimeInUnit * pixelsPerUnit;
 
-  // Generate time markers with appropriate intervals (in SECONDS)
-  let markerInterval = Math.max(10, Math.round(maxRelativeTime / 10)); // Start with ~10 markers
+  // Generate time markers with appropriate intervals (in selected unit)
+  let markerInterval = Math.max(10, Math.round(maxRelativeTimeInUnit / 10)); // Start with ~10 markers
   const minMarkerSpacingPx = 80;
   const maxMarkerSpacingPx = 150;
-  let currentMarkerSpacing = markerInterval * pixelsPerSec;
+  let currentMarkerSpacing = markerInterval * pixelsPerUnit;
+
+  // Adjust marker interval based on selected unit
+  const getIntervalStep = () => {
+    switch (selectedUnit) {
+      case "ms":
+        return [100, 500, 1000, 5000]; // milliseconds steps
+      case "s":
+        return [10, 30, 60, 300]; // seconds steps
+      case "m":
+        return [1, 5, 10, 30]; // minutes steps
+      case "h":
+        return [0.25, 0.5, 1, 2]; // hours steps (15min, 30min, 1h, 2h)
+      default:
+        return [10, 30, 60, 300];
+    }
+  };
+
+  const steps = getIntervalStep();
 
   // If markers are too close, increase interval
-  while (currentMarkerSpacing < minMarkerSpacingPx && markerInterval < maxRelativeTime) {
-    if (markerInterval < 10) {
-      markerInterval = 10;
-    } else if (markerInterval < 30) {
-      markerInterval += 10;
-    } else if (markerInterval < 60) {
-      markerInterval += 30;
-    } else if (markerInterval < 300) {
-      markerInterval += 60;
+  while (
+    currentMarkerSpacing < minMarkerSpacingPx &&
+    markerInterval < maxRelativeTimeInUnit
+  ) {
+    const currentStepIndex = steps.findIndex((s) => s > markerInterval);
+    if (currentStepIndex === -1) {
+      markerInterval += steps[steps.length - 1];
     } else {
-      markerInterval += 300;
+      markerInterval = steps[currentStepIndex];
     }
-    currentMarkerSpacing = markerInterval * pixelsPerSec;
+    currentMarkerSpacing = markerInterval * pixelsPerUnit;
   }
 
   // If markers are too far, decrease interval
-  while (currentMarkerSpacing > maxMarkerSpacingPx && markerInterval > 10) {
-    if (markerInterval <= 10) {
-      break;
-    } else if (markerInterval <= 30) {
-      markerInterval -= 10;
-    } else if (markerInterval <= 60) {
-      markerInterval -= 30;
-    } else if (markerInterval <= 300) {
-      markerInterval -= 60;
+  while (
+    currentMarkerSpacing > maxMarkerSpacingPx &&
+    markerInterval > steps[0]
+  ) {
+    const currentStepIndex = steps.findIndex((s) => s >= markerInterval);
+    if (currentStepIndex > 0) {
+      markerInterval = steps[currentStepIndex - 1];
     } else {
-      markerInterval -= 300;
+      break;
     }
-    currentMarkerSpacing = markerInterval * pixelsPerSec;
+    currentMarkerSpacing = markerInterval * pixelsPerUnit;
   }
 
-  const markerCount = Math.ceil(maxRelativeTime / markerInterval);
+  const markerCount = Math.ceil(maxRelativeTimeInUnit / markerInterval);
   const timeMarkers = Array.from(
     { length: Math.min(markerCount + 1, 20) },
     (_, i) => i * markerInterval
@@ -238,6 +289,26 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
       <div className="space-y-4">
         {/* Timeline Container */}
         <div className="relative bg-card border border-border rounded-lg p-4">
+          {/* Unit Selector */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="inline-flex rounded-md border border-border overflow-hidden">
+              {(["ms", "s", "m", "h"] as TimeUnit[]).map((unit) => (
+                <button
+                  key={unit}
+                  onClick={() => setSelectedUnit(unit)}
+                  className={cn(
+                    "px-3 py-1 text-xs font-medium transition-colors text-gray-300",
+                    selectedUnit === unit
+                      ? "bg-[#1E1F22FF] text-white hover:text-white"
+                      : "bg-card hover:text-gray-50"
+                  )}
+                >
+                  {unit}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Timeline boundaries */}
           <div className="flex items-center justify-between mb-2 text-[10px] font-mono text-muted-foreground">
             <span className="sticky left-0 bg-card/95 backdrop-blur-sm px-1 z-20">
@@ -266,7 +337,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               {/* Grid lines - positioned absolutely based on time values */}
               <div className="absolute inset-0">
                 {timeMarkers.map((time, i) => {
-                  const positionPx = time * pixelsPerSec;
+                  const positionPx = time * pixelsPerUnit;
                   return (
                     <div
                       key={i}
@@ -281,12 +352,13 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               {(() => {
                 const now = Math.floor(Date.now() / 1000); // Convert to seconds
                 const nowRelative = now - minStartTime;
+                const nowRelativeInUnit = convertToSelectedUnit(nowRelative);
                 const isNowInRange =
                   nowRelative >= 0 && nowRelative <= maxRelativeTime;
 
                 if (!isNowInRange) return null;
 
-                const nowPositionPx = nowRelative * pixelsPerSec;
+                const nowPositionPx = nowRelativeInUnit * pixelsPerUnit;
 
                 return (
                   <div
@@ -303,16 +375,22 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                   // For pending events, show a small hatched box at the end
                   const isPending = event.isPending;
 
-                  // Calculate position in pixels (already in seconds)
+                  // Convert event times to selected unit
+                  const eventStartInUnit = convertToSelectedUnit(
+                    event.relativeStart
+                  );
+                  const eventEndInUnit = convertToSelectedUnit(
+                    event.relativeEnd
+                  );
+
+                  // Calculate position in pixels
                   const leftPx = isPending
-                    ? completedMaxTime * pixelsPerSec + 10 // Just after the last completed event
-                    : event.relativeStart * pixelsPerSec;
+                    ? completedMaxTimeInUnit * pixelsPerUnit + 10 // Just after the last completed event
+                    : eventStartInUnit * pixelsPerUnit;
 
                   const widthPx = isPending
-                    ? 30 * pixelsPerSec // Pending events: 30 seconds width
-                    : (event.relativeEnd - event.relativeStart) * pixelsPerSec;
-
-                  const duration = event.relativeEnd - event.relativeStart;
+                    ? 30 * pixelsPerUnit // Pending events: 30 units width
+                    : (eventEndInUnit - eventStartInUnit) * pixelsPerUnit;
 
                   // Calculate vertical position for each event
                   const eventHeight = 24; // h-6 = 24px
@@ -359,9 +437,27 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
                               <div>ID: {event.id}</div>
                               {!isPending && (
                                 <>
-                                  <div>Start: {event.relativeStart}s</div>
-                                  <div>End: {event.relativeEnd}s</div>
-                                  <div>Duration: {duration}s</div>
+                                  <div>
+                                    Start:{" "}
+                                    {eventStartInUnit.toFixed(
+                                      selectedUnit === "ms" ? 0 : 2
+                                    )}
+                                    {selectedUnit}
+                                  </div>
+                                  <div>
+                                    End:{" "}
+                                    {eventEndInUnit.toFixed(
+                                      selectedUnit === "ms" ? 0 : 2
+                                    )}
+                                    {selectedUnit}
+                                  </div>
+                                  <div>
+                                    Duration:{" "}
+                                    {(
+                                      eventEndInUnit - eventStartInUnit
+                                    ).toFixed(selectedUnit === "ms" ? 0 : 2)}
+                                    {selectedUnit}
+                                  </div>
                                 </>
                               )}
                               <div>Status: {event.status}</div>
@@ -387,14 +483,19 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
               onMouseUp={handleXAxisMouseUp}
             >
               {timeMarkers.map((time, i) => {
-                const positionPx = i === 0 ? 16 : time * pixelsPerSec;
+                const positionPx = i === 0 ? 16 : time * pixelsPerUnit;
+                const formattedTime =
+                  selectedUnit === "ms" || selectedUnit === "s"
+                    ? Math.round(time).toString()
+                    : time.toFixed(1);
                 return (
                   <span
                     key={i}
                     className="absolute -translate-x-1/2"
                     style={{ left: `${positionPx}px` }}
                   >
-                    {time}s
+                    {formattedTime}
+                    {selectedUnit}
                   </span>
                 );
               })}
