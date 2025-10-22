@@ -9,7 +9,7 @@ The Poseidon Subnet Management Console provides a comprehensive interface for:
 - **Dashboard Monitoring**: Real-time metrics for workflow success rates, active workers, and system health
 - **Workflow Management**: View, track, and analyze workflow executions with detailed timelines
 - **Task Queue Management**: Monitor task queues and their processing status
-- **Worker Monitoring**: Track worker performance, staking, and activity status
+- **Worker Monitoring**: Track worker performance, staking, and status
 
 ## Related Repository
 
@@ -97,7 +97,7 @@ poseidon-subnet-management-console/
 
 Real-time monitoring with:
 
-- Workflow and activity success rate metrics
+- Workflow success rate metrics
 - Active/idle worker statistics
 - Total staked amount tracking
 - Historical execution charts
@@ -107,7 +107,6 @@ Real-time monitoring with:
 Interactive timeline visualization showing:
 
 - Workflow execution flow
-- Activity status and duration
 - Event history with zoom/pan controls
 - Real-time status updates
 
@@ -125,7 +124,7 @@ Track worker performance:
 
 - Worker status (Active/Inactive/Jailed)
 - Staking information
-- Activity assignments
+- Task assignments
 
 ## API Integration
 
