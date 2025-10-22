@@ -168,7 +168,7 @@ export function Search() {
     <div ref={searchRef} className="relative">
       <AnimatePresence>
         {isSearchOpen ? (
-          <div className="fixed inset-0 flex flex-col items-center justify-start md:items-end pr-4 pt-2">
+          <div className="fixed inset-0 z-10 flex flex-col items-center justify-start md:items-end pr-4 pt-2">
             <div className="h-screen w-screen md:h-[384px] md:max-w-[329px] md:p-0 p-2 z-30">
               <div className="relative flex flex-col">
                 <motion.div
