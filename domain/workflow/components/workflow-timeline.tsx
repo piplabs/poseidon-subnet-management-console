@@ -233,7 +233,10 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   const timelineHeight = viewMode === "expanded" ? "h-96" : "h-48";
   const timelineHeightPx = viewMode === "expanded" ? 384 : 192;
   // 60: bar label, height itself + gap between bars
-  const fitTimelineHeightForContent = 60 * eventsWithRelativeTime.length;
+  const fitTimelineHeightForContent = Math.max(
+    60 * eventsWithRelativeTime.length,
+    200
+  );
 
   return (
     <TooltipProvider>
