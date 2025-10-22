@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
 
 export interface DashboardMetrics {
   activeWorkers: number
@@ -36,27 +37,37 @@ interface ApiMetricsResponse {
 }
 
 async function fetchDashboardMetrics(subnetId?: string): Promise<DashboardMetrics> {
-  // TODO: Replace with actual API call to GET /api/v1/metrics/overview
-  // const response = await fetch(`/api/v1/metrics/overview`)
-  // const apiResponse: ApiMetricsResponse = await response.json()
+  let apiResponse: ApiMetricsResponse
+  console.log("isApiConfigured", isApiConfigured())
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl("/api/v1/metrics/overview")
+    const response = await fetch(url)
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+    if (!response.ok) {
+      throw new Error(`Failed to fetch dashboard metrics: ${response.statusText}`)
+    }
 
-  // MOCK DATA - Replace with actual API response
-  const apiResponse: ApiMetricsResponse = {
-    activeWorkers: 124,
-    totalStaked: "32145.89",
-    totalWorkflows: {
-      started: 4021,
-      active: 312,
-      completed: 3510,
-      failed: 199,
-    },
-    workflowSuccessRate: 94.6,
-    activitySuccessRate: 96.2,
-    avgWorkflowDurationSec: 128,
-    p95WorkflowDurationSec: 540,
+    apiResponse = await response.json()
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // MOCK DATA - Used when API is not configured
+    apiResponse = {
+      activeWorkers: 124,
+      totalStaked: "32145.89",
+      totalWorkflows: {
+        started: 4021,
+        active: 312,
+        completed: 3510,
+        failed: 199,
+      },
+      workflowSuccessRate: 94.6,
+      activitySuccessRate: 96.2,
+      avgWorkflowDurationSec: 128,
+      p95WorkflowDurationSec: 540,
+    }
   }
 
   // Transform to FE format

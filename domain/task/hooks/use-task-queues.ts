@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/transforms"
 import { useTaskQueueFilterContext } from "../contexts/task-queue-filter-context"
 import { useMemo } from "react"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
 
 export interface TaskQueue {
   id: string
@@ -54,15 +55,24 @@ async function fetchTaskQueues(params: {
     queryParams.append("subnetId", params.subnetId)
   }
 
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/v1/queues?${queryParams.toString()}`)
-  // const apiResponse: QueueListResponse = await response.json()
+  let apiResponse: QueueListResponse
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl(`/api/v1/queues?${queryParams.toString()}`)
+    const response = await fetch(url)
 
-  // MOCK DATA - Replace with actual API response
-  const apiResponse: QueueListResponse = {
+    if (!response.ok) {
+      throw new Error(`Failed to fetch task queues: ${response.statusText}`)
+    }
+
+    apiResponse = await response.json()
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    // MOCK DATA - Used when API is not configured
+    apiResponse = {
     items: [
       {
         queueId: "chutes-default",
@@ -110,24 +120,20 @@ async function fetchTaskQueues(params: {
         createdAt: "2025-10-15T08:45:00Z",
       },
     ],
-    page: params.page, // Use the actual page from params
-    pageSize: params.pageSize,
-    total: 5,
+      page: params.page, // Use the actual page from params
+      pageSize: params.pageSize,
+      total: 5,
+    }
+
+    // Filter mock data by queueId (for demo purposes)
+    if (params.queueId) {
+      apiResponse.items = apiResponse.items.filter((item) =>
+        item.queueId.toLowerCase().includes(params.queueId!.toLowerCase())
+      )
+    }
   }
 
-  // Filter mock data by queueId (for demo purposes)
-  let filteredItems = apiResponse.items
-  if (params.queueId) {
-    filteredItems = filteredItems.filter((item) =>
-      item.queueId.toLowerCase().includes(params.queueId!.toLowerCase())
-    )
-  }
-
-  // Return the response with pagination metadata
-  return {
-    ...apiResponse,
-    items: filteredItems,
-  }
+  return apiResponse
 }
 
 export function useTaskQueues(subnetId?: string) {
