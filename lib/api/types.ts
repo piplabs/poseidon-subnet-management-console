@@ -85,12 +85,12 @@ export interface WorkflowDetailResponse {
   workflowId: string
   type: string
   definition: string
-  creator: string
+  creator: string | null  // Can be null for system-generated workflows
   status: WorkflowStatus
   createdAt: string
-  terminatedAt: string
-  terminationReason: string
-  durationSec: number
+  terminatedAt: string | null  // Null for running workflows
+  terminationReason: string | null  // Null if not terminated
+  durationSec: number | null  // Null for running workflows
   currentStep: number
   totalSteps: number
   stateHistory: StateTransition[]
