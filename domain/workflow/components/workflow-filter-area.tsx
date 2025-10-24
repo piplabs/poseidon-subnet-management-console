@@ -43,7 +43,7 @@ function FilterButton({
   return (
     <div className="inline-flex items-center rounded-md border border-border bg-[#141618] text-sm h-7">
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex foucs-visible:outline-none focus:outline-none items-center h-[inherit] rounded-l-sm px-2 gap-1.5 hover:bg-[#1E1F22FF] transition-opacity">
+        <button className="inline-flex border-r-border border-r focus-visible:outline-none focus:outline-none items-center h-[inherit] rounded-l-sm px-2 gap-1.5 hover:bg-[#1E1F22FF] transition-opacity">
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-muted-foreground">{label}</span>
           <span className="text-foreground text-sm opacity-90">{value}</span>
