@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query"
 import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
 import {
   formatDuration,
@@ -188,6 +188,7 @@ export function useWorkflows(subnetId?: string) {
       return currentPage < totalPages ? currentPage + 1 : undefined
     },
     initialPageParam: 1,
+    placeholderData: keepPreviousData,
   })
 
   const workflows = useMemo(() => {
