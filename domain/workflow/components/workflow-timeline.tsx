@@ -189,9 +189,14 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   const pixelsPerUnit = 500 / zoomLevel; // at 100 zoom: 5px per unit
 
   // Calculate actual timeline width in pixels based on data
-  const timelineWidthPx = maxRelativeTimeInUnit * pixelsPerUnit;
+  const dataWidthPx = maxRelativeTimeInUnit * pixelsPerUnit;
+
+  // Extend timeline to allow wider zoom area (2x the data width for better UX)
+  // This ensures users can zoom in/out comfortably without hitting the edge
+  const timelineWidthPx = Math.max(dataWidthPx * 2, 1000); // Minimum 1000px for short workflows
 
   // Generate time markers with appropriate intervals (in selected unit)
+  // Keep marker calculation based on actual data range for dynamic spacing
   let markerInterval = Math.max(10, Math.round(maxRelativeTimeInUnit / 10)); // Start with ~10 markers
   const minMarkerSpacingPx = 80;
   const maxMarkerSpacingPx = 150;
@@ -243,9 +248,11 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
     currentMarkerSpacing = markerInterval * pixelsPerUnit;
   }
 
-  const markerCount = Math.ceil(maxRelativeTimeInUnit / markerInterval);
+  // Generate markers that extend beyond data range to fill the extended timeline
+  const extendedTimeRange = timelineWidthPx / pixelsPerUnit;
+  const markerCount = Math.ceil(extendedTimeRange / markerInterval);
   const timeMarkers = Array.from(
-    { length: Math.min(markerCount + 1, 20) },
+    { length: markerCount + 1 },
     (_, i) => i * markerInterval
   );
 
