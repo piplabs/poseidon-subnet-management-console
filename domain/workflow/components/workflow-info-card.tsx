@@ -1,6 +1,13 @@
 "use client";
 
-import { Clock, User, FileText, GitBranch, Activity } from "lucide-react";
+import {
+  Clock,
+  User,
+  FileText,
+  GitBranch,
+  Activity,
+  Loader,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,7 +15,10 @@ import {
   TooltipTrigger,
 } from "@/common/components/tooltip";
 import { useEffect, useState } from "react";
-import { formatTimestampWithTimezone, getWorkflowStatusBgColor } from "@/lib/utils";
+import {
+  formatTimestampWithTimezone,
+  getWorkflowStatusBgColor,
+} from "@/lib/utils";
 
 interface WorkflowInfoCardProps {
   workflowId: string;
@@ -147,7 +157,9 @@ export function WorkflowInfoCard({
                 content={
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${getWorkflowStatusBgColor(status)}`}
+                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${getWorkflowStatusBgColor(
+                        status
+                      )}`}
                     />
                     {isTerminated && terminationReason ? (
                       <Tooltip>
@@ -185,7 +197,12 @@ export function WorkflowInfoCard({
                 label="Duration"
                 content={
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 flex-none" />
+                    {status === "Running" ? (
+                      <Loader className="h-4 w-4 flex-none loader-color-animate" />
+                    ) : (
+                      <Clock className="h-4 w-4 flex-none" />
+                    )}
+
                     <span className="tabular-nums">
                       {shouldShowElapsedTime ? elapsedTime : duration}
                     </span>
