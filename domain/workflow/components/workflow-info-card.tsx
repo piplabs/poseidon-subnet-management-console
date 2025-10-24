@@ -1,12 +1,24 @@
 "use client";
 
-import { Clock, User, FileText, GitBranch, Activity } from "lucide-react";
+import {
+  Clock,
+  User,
+  FileText,
+  GitBranch,
+  Activity,
+  Loader,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/common/components/tooltip";
+import { useEffect, useState } from "react";
+import {
+  formatTimestampWithTimezone,
+  getWorkflowStatusBgColor,
+} from "@/lib/utils";
 
 interface WorkflowInfoCardProps {
   workflowId: string;
@@ -15,10 +27,12 @@ interface WorkflowInfoCardProps {
   creator: string;
   status: string;
   createdAt: string;
-  duration: string;
+  duration: undefined | string;
   completedSteps: number;
   totalSteps: number;
   workers: number;
+  terminationReason?: string;
+  terminatedAt?: string;
 }
 
 // Item component for label and content
@@ -54,6 +68,27 @@ function getRelativeTime(timestamp: string): string {
   return `${diffSeconds}s ago`;
 }
 
+// Helper function to format elapsed time
+function formatElapsedTime(timestamp: string): string {
+  const now = new Date();
+  const start = new Date(timestamp);
+  const diffMs = now.getTime() - start.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  const hours = diffHours;
+  const minutes = diffMinutes % 60;
+  const seconds = diffSeconds % 60;
+
+  const parts = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+
+  return parts.join(" ");
+}
+
 export function WorkflowInfoCard({
   workflowId,
   type,
@@ -65,9 +100,35 @@ export function WorkflowInfoCard({
   completedSteps,
   totalSteps,
   workers,
+  terminationReason,
+  terminatedAt,
 }: WorkflowInfoCardProps) {
   const progressPercentage = (completedSteps / totalSteps) * 100;
   const relativeTime = getRelativeTime(createdAt);
+
+  const isTerminated = status.toLowerCase() === "terminated";
+  const terminatedRelativeTime = terminatedAt
+    ? getRelativeTime(terminatedAt)
+    : null;
+
+  // State for live elapsed time updates
+  const [elapsedTime, setElapsedTime] = useState<string>(() =>
+    formatElapsedTime(createdAt)
+  );
+
+  const isRunning = status.toLowerCase() === "running";
+  const shouldShowElapsedTime = isRunning && !duration;
+
+  // Update elapsed time every second for running workflows
+  useEffect(() => {
+    if (!shouldShowElapsedTime) return;
+
+    const interval = setInterval(() => {
+      setElapsedTime(formatElapsedTime(createdAt));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [shouldShowElapsedTime, createdAt]);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -94,39 +155,69 @@ export function WorkflowInfoCard({
               <Item
                 label="Status"
                 content={
-                  <>
+                  <div className="flex items-center gap-2">
                     <span
-                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${
-                        status === "completed"
-                          ? "bg-green-500"
-                          : status === "running"
-                          ? "bg-blue-500"
-                          : status === "failed"
-                          ? "bg-red-500"
-                          : "bg-gray-500"
-                      }`}
+                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${getWorkflowStatusBgColor(
+                        status
+                      )}`}
                     />
-                    <span className="capitalize">{status}</span>
-                  </>
+                    {isTerminated && terminationReason ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="capitalize cursor-help">
+                            {status}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          align="start"
+                          alignOffset={-10}
+                          sideOffset={6}
+                        >
+                          <div className="space-y-1 text-xs">
+                            <p>{terminationReason}</p>
+                            {terminatedAt && terminatedRelativeTime && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Terminated {terminatedRelativeTime}
+                                <br />
+                                {formatTimestampWithTimezone(terminatedAt)}
+                              </p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="capitalize">{status}</span>
+                    )}
+                  </div>
                 }
               />
 
               <Item
                 label="Duration"
                 content={
-                  <div className="flex items-center gap-2 tabular-nums">
-                    <Clock className="h-4 w-4 flex-none" />
-                    <span>{duration}</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="cursor-help text-gray-500 text-xs">
-                          {relativeTime}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{createdAt}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                  <div className="flex items-center gap-2">
+                    {status === "Running" ? (
+                      <Loader className="h-4 w-4 flex-none loader-color-animate" />
+                    ) : (
+                      <Clock className="h-4 w-4 flex-none" />
+                    )}
+
+                    <span className="tabular-nums">
+                      {shouldShowElapsedTime ? elapsedTime : duration}
+                    </span>
+                    {!shouldShowElapsedTime && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help text-gray-500 text-xs tabular-nums">
+                            {relativeTime}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{formatTimestampWithTimezone(createdAt)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 }
               />

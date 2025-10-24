@@ -1,9 +1,7 @@
 "use client";
 
 import { Clock, Activity, Users, TrendingUp } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "../../../common/components/button";
 import { Card } from "../../../common/components/card";
 import { Skeleton } from "../../../common/components/skeleton";
 import { Badge } from "../../../common/components/badge";
@@ -89,7 +87,7 @@ export default function QueueDetailPage({
               </span>
               <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
                 <Clock className="h-4 w-4 flex-none" />
-                <span className="font-mono">{queueData?.averageWaitTime}</span>
+                <span className="font-mono tabular-nums">{queueData?.averageWaitTime}</span>
               </div>
             </div>
 
@@ -98,7 +96,7 @@ export default function QueueDetailPage({
               <span className="text-xs text-muted-foreground">Throughput</span>
               <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
                 <TrendingUp className="h-4 w-4 flex-none" />
-                <span className="font-mono">{queueData?.throughput}</span>
+                <span className="font-mono tabular-nums">{queueData?.throughput}</span>
               </div>
             </div>
 
@@ -108,7 +106,7 @@ export default function QueueDetailPage({
                 Current Depth
               </span>
               <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
-                <span className="font-mono">{queueData?.currentDepth}</span>
+                <span className="font-mono tabular-nums">{queueData?.currentDepth}</span>
               </div>
             </div>
 
@@ -118,7 +116,7 @@ export default function QueueDetailPage({
                 Oldest Pending
               </span>
               <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
-                <span className="truncate">
+                <span className="truncate tabular-nums">
                   {queueData?.oldestPendingActivity}
                 </span>
               </div>
@@ -237,7 +235,7 @@ export default function QueueDetailPage({
                           <div className="text-sm text-muted-foreground">
                             Queued at
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
                             {activity.queuedAt}
                           </div>
                         </div>

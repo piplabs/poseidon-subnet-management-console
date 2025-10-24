@@ -8,6 +8,7 @@ import type {
   ActivityStatus,
   WorkerStatus,
 } from "./types"
+import { formatTimestampWithTimezone } from "../utils"
 
 // ============================================================================
 // Format Helper Functions
@@ -16,8 +17,8 @@ import type {
 /**
  * Format duration in seconds to readable string (e.g., "5m 30s")
  */
-export function formatDuration(seconds: number | null): string {
-  if (seconds === null || seconds === undefined) return "-"
+export function formatDuration(seconds: number | null): undefined | string {
+  if (seconds === null || seconds === undefined) return undefined
   if (seconds === 0) return "0s"
 
   const mins = Math.floor(seconds / 60)
@@ -31,8 +32,8 @@ export function formatDuration(seconds: number | null): string {
 /**
  * Format duration in milliseconds to readable string
  */
-export function formatDurationMs(ms: number | null): string {
-  if (ms === null || ms === undefined) return "-"
+export function formatDurationMs(ms: number | null): undefined | string {
+  if (ms === null || ms === undefined) return undefined
   return formatDuration(Math.round(ms / 1000))
 }
 
@@ -65,10 +66,11 @@ export function formatTime(isoTimestamp: string): string {
 }
 
 /**
- * Format ISO timestamp to local date and time
+ * Format ISO timestamp to local date and time with timezone
+ * Example: "Oct 23, 2025, 12:01:09 AM PDT"
  */
 export function formatDateTime(isoTimestamp: string): string {
-  return new Date(isoTimestamp).toLocaleString()
+  return formatTimestampWithTimezone(isoTimestamp)
 }
 
 /**
@@ -81,17 +83,10 @@ export function formatThroughput(perMinute: number): string {
 /**
  * Format wait time in seconds to readable string
  */
-export function formatWaitTime(seconds: number): string {
+export function formatWaitTime(seconds: number): undefined | string {
   return formatDuration(seconds)
 }
 
-/**
- * Format blockchain address to shortened version (e.g., "0xabc123...def456")
- */
-export function formatAddress(address: string, prefixLength = 10): string {
-  if (address.length <= prefixLength + 3) return address
-  return `${address.substring(0, prefixLength)}...`
-}
 
 /**
  * Format staked amount (assuming it's in wei or similar)

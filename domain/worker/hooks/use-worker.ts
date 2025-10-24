@@ -8,6 +8,7 @@ import type {
 import {
   formatRelativeTime,
 } from "@/lib/api/transforms"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
 
 export interface WorkerDetails {
   id: string
@@ -26,15 +27,24 @@ export interface WorkerDetails {
 }
 
 async function fetchWorker(workerId: string): Promise<WorkerDetails> {
-  // TODO: Replace with actual API call to GET /api/v1/workers/{workerId}
-  // const response = await fetch(`/api/v1/workers/${workerId}`)
-  // const apiResponse: WorkerDetailResponse = await response.json()
+  let apiResponse: WorkerDetailResponse
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl(`/api/v1/workers/${workerId}`)
+    const response = await fetch(url)
 
-  // MOCK DATA - Replace with actual API response
-  const apiResponse: WorkerDetailResponse = {
+    if (!response.ok) {
+      throw new Error(`Failed to fetch worker: ${response.statusText}`)
+    }
+
+    apiResponse = await response.json()
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // MOCK DATA - Used when API is not configured
+    apiResponse = {
     workerId: workerId,
     stakedAmount: "1000000000000000000000", // 1000 tokens in wei
     jailed: false,
@@ -73,6 +83,7 @@ async function fetchWorker(workerId: string): Promise<WorkerDetails> {
         status: "Failed",
       },
     ],
+    }
   }
 
   // Derive status from jailed flag and last heartbeat

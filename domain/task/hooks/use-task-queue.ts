@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
+import { formatTimestampWithTimezone } from "@/lib/utils"
 
 export interface TaskQueueDetails {
   id: string
@@ -12,31 +14,80 @@ export interface TaskQueueDetails {
   oldestPendingActivity: string
 }
 
+// API Response from GET /api/v1/queues
+interface ApiQueueResponse {
+  items: Array<{
+    queueId: string
+    partitionCount: number
+    createdAt: string
+    pendingActivities: number
+    throughputPerMin: number
+    avgWaitSec: number
+    oldestPendingSince: string
+  }>
+  page: number
+  pageSize: number
+  total: number
+}
+
+function calculateTimeAgo(timestamp: string): string {
+  const now = new Date()
+  const past = new Date(timestamp)
+  const diffMs = now.getTime() - past.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+
+  if (diffMinutes < 1) return "just now"
+  if (diffMinutes === 1) return "1 minute ago"
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours === 1) return "1 hour ago"
+  if (diffHours < 24) return `${diffHours} hours ago`
+
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return "1 day ago"
+  return `${diffDays} days ago`
+}
+
 async function fetchTaskQueue(queueId: string): Promise<TaskQueueDetails> {
-  // TODO: Replace with actual API call to GET /api/v1/queues?queueId={queueId}
-  // const response = await fetch(`/api/v1/queues?queueId=${queueId}`)
-  // const data = await response.json()
-  // return data.items[0] // Extract first item from array
+  let apiResponse: ApiQueueResponse
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl(`/api/v1/queues?queueId=${encodeURIComponent(queueId)}`)
+    const response = await fetch(url)
 
-  // MOCK DATA - Simulating API response structure: { items: [...] }
-  const apiResponse = {
-    items: [
-      {
-        queueId: queueId,
-        partitionCount: 4,
-        createdAt: "2025-10-01T00:00:00Z",
-        pendingActivities: 15,
-        throughputPerMin: 180,
-        avgWaitSec: 6.3,
-        oldestPendingSince: "2025-10-10T04:20:10Z",
-      }
-    ],
-    page: 1,
-    pageSize: 10,
-    total: 1
+    if (!response.ok) {
+      throw new Error(`Failed to fetch task queue: ${response.statusText}`)
+    }
+
+    apiResponse = await response.json()
+
+    // Check if the queue was found in the response
+    if (!apiResponse.items || apiResponse.items.length === 0) {
+      throw new Error(`Queue with id ${queueId} not found`)
+    }
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // MOCK DATA - Used when API is not configured
+    apiResponse = {
+      items: [
+        {
+          queueId: queueId,
+          partitionCount: 4,
+          createdAt: "2025-10-01T00:00:00Z",
+          pendingActivities: 15,
+          throughputPerMin: 180,
+          avgWaitSec: 6.3,
+          oldestPendingSince: "2025-10-10T04:20:10Z",
+        }
+      ],
+      page: 1,
+      pageSize: 10,
+      total: 1
+    }
   }
 
   // Transform API response to FE format
@@ -45,12 +96,12 @@ async function fetchTaskQueue(queueId: string): Promise<TaskQueueDetails> {
     id: queue.queueId,
     name: queue.queueId, // API doesn't provide name field yet
     pendingActivities: queue.pendingActivities,
-    activeWorkers: 5, // Not in API response
+    activeWorkers: 5, // TODO: Not in API response - needs to be added or calculated
     averageWaitTime: `${queue.avgWaitSec}s`,
     throughput: `${queue.throughputPerMin}/min`,
     currentDepth: queue.pendingActivities,
-    createdAt: new Date(queue.createdAt).toLocaleDateString(),
-    oldestPendingActivity: "2 minutes ago", // Would need to calculate from oldestPendingSince
+    createdAt: formatTimestampWithTimezone(queue.createdAt),
+    oldestPendingActivity: calculateTimeAgo(queue.oldestPendingSince),
   }
 }
 

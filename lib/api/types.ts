@@ -51,14 +51,14 @@ export interface WorkflowListItem {
   workflowId: string
   type: string
   definition: string
-  creator: string
+  creator: string | null  // Can be null for system-generated workflows
   status: WorkflowStatus
   startedAt: string
-  endedAt: string
-  durationSec: number
+  endedAt: string | null  // Null for running workflows
+  durationSec: number | null  // Null for running workflows
   currentStep: number
   totalSteps: number
-  latestActivityId: string
+  latestActivityId: string | null  // Can be null if no activities yet
 }
 
 export interface StateTransition {
@@ -85,12 +85,12 @@ export interface WorkflowDetailResponse {
   workflowId: string
   type: string
   definition: string
-  creator: string
+  creator: string | null  // Can be null for system-generated workflows
   status: WorkflowStatus
   createdAt: string
-  terminatedAt: string
-  terminationReason: string
-  durationSec: number
+  terminatedAt: string | null  // Null for running workflows
+  terminationReason: string | null  // Null if not terminated
+  durationSec: number | null  // Null for running workflows
   currentStep: number
   totalSteps: number
   stateHistory: StateTransition[]

@@ -1,4 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
+import { useWorkflow } from "./use-workflow"
+import { formatTime } from "@/lib/api/transforms"
 
 export interface WorkflowLog {
   timestamp: string
@@ -6,46 +8,65 @@ export interface WorkflowLog {
   message: string
 }
 
-async function fetchWorkflowLogs(workflowId: string): Promise<WorkflowLog[]> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 700))
-
-  // Mock data - replace with actual API call
-  // TODO: Replace with: const response = await fetch(`/api/workflows/${workflowId}/logs`)
-  return [
-    {
-      timestamp: "14:30:15.123",
-      level: "info",
-      message: "Workflow started",
-    },
-    {
-      timestamp: "14:30:15.456",
-      level: "info",
-      message: "Activity 'ValidatePayment' started",
-    },
-    {
-      timestamp: "14:31:38.789",
-      level: "info",
-      message: "Activity 'ValidatePayment' completed successfully",
-    },
-    {
-      timestamp: "14:31:39.012",
-      level: "info",
-      message: "Activity 'ProcessTransaction' started",
-    },
-    {
-      timestamp: "14:32:45.345",
-      level: "warning",
-      message: "Retrying transaction due to network timeout",
-    },
-  ]
-}
-
+/**
+ * Generates logs from workflow state history and activities
+ * Note: This is a derived view from workflow detail data.
+ * For actual log files, a dedicated /api/v1/workflows/{id}/logs endpoint would be needed
+ */
 export function useWorkflowLogs(workflowId: string) {
-  return useQuery({
-    queryKey: ["workflowLogs", workflowId],
-    queryFn: () => fetchWorkflowLogs(workflowId),
-    enabled: !!workflowId,
-    refetchInterval: 5000, // Refresh every 5 seconds for live logs
-  })
+  const workflowQuery = useWorkflow(workflowId)
+
+  const logs = useMemo(() => {
+    if (!workflowQuery.data) {
+      return []
+    }
+
+    const workflow = workflowQuery.data
+    const logEntries: WorkflowLog[] = []
+
+    // Add workflow state transitions as log entries
+    if (workflow.stateHistory && workflow.stateHistory.length > 0) {
+      workflow.stateHistory.forEach((transition) => {
+        logEntries.push({
+          timestamp: formatTime(transition.timestamp),
+          level: transition.to === "Failed" || transition.to === "Terminated" ? "error" : "info",
+          message: `Workflow transitioned from ${transition.from} to ${transition.to}`,
+        })
+      })
+    }
+
+    // Add activity events as log entries
+    if (workflow.activities && workflow.activities.length > 0) {
+      workflow.activities.forEach((activity) => {
+        // Activity started
+        logEntries.push({
+          timestamp: formatTime(activity.startedAt),
+          level: "info",
+          message: `Activity Step ${activity.stepIndex + 1} started`,
+        })
+
+        // Activity completed/failed
+        if (activity.completedAt) {
+          logEntries.push({
+            timestamp: formatTime(activity.completedAt),
+            level: activity.status === "Failed" ? "error" : "info",
+            message: `Activity Step ${activity.stepIndex + 1} ${activity.status.toLowerCase()}`,
+          })
+        }
+      })
+    }
+
+    // Sort logs by timestamp (most recent first or chronological)
+    // For now, keeping chronological order
+    return logEntries.sort((a, b) => {
+      // Simple timestamp string comparison (works for HH:MM:SS format)
+      return a.timestamp.localeCompare(b.timestamp)
+    })
+  }, [workflowQuery.data])
+
+  return {
+    data: logs,
+    isLoading: workflowQuery.isLoading,
+    error: workflowQuery.error,
+  }
 }

@@ -1,60 +1,65 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
+import { useWorkflow } from "./use-workflow"
+import type { ActivityStatus } from "@/lib/api/types"
 
 export interface TimelineEvent {
   id: string
   name: string
-  startTime: number // milliseconds
-  endTime: number // milliseconds
+  startTime: number // seconds
+  endTime: number // seconds
   status: "success" | "error" | "running" | "pending"
 }
 
-async function fetchWorkflowTimeline(workflowId: string): Promise<TimelineEvent[]> {
-  // TODO: Replace with actual API call to GET /api/v1/workflows/{workflowId}/events
-  // const response = await fetch(`/api/v1/workflows/${workflowId}/events`)
-  // const apiResponse = await response.json()
-
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 700))
-
-  // MOCK DATA - Replace with actual API response
-  const now = Date.now()
-  const workflowStart = now - 500 // Workflow started 500ms ago
-  return [
-    {
-      id: "event-001",
-      name: "ValidatePayment",
-      startTime: workflowStart,
-      endTime: workflowStart + 125, // 125ms duration
-      status: "success",
-    },
-    {
-      id: "event-002",
-      name: "ProcessTransaction",
-      startTime: workflowStart + 135, // 10ms gap
-      endTime: workflowStart + 280, // 145ms duration
-      status: "success",
-    },
-    {
-      id: "event-003",
-      name: "SendConfirmation",
-      startTime: workflowStart + 290, // 10ms gap
-      endTime: workflowStart + 400, // 110ms duration
-      status: "running",
-    },
-    {
-      id: "event-004",
-      name: "UpdateInventory",
-      startTime: 0,
-      endTime: 0,
-      status: "pending",
-    },
-  ]
+// Map ActivityStatus to timeline status
+function mapActivityStatus(status: ActivityStatus): TimelineEvent["status"] {
+  switch (status) {
+    case "Completed":
+      return "success"
+    case "Failed":
+      return "error"
+    case "Running":
+      return "running"
+    case "Pending":
+    case "Scheduled":
+    case "Claimed":
+      return "pending"
+    default:
+      return "pending"
+  }
 }
 
+/**
+ * Uses workflow detail data (activities) to build timeline events
+ * No separate API call needed - data comes from workflow detail endpoint
+ */
 export function useWorkflowTimeline(workflowId: string) {
-  return useQuery({
-    queryKey: ["workflowTimeline", workflowId],
-    queryFn: () => fetchWorkflowTimeline(workflowId),
-    enabled: !!workflowId,
-  })
+  const workflowQuery = useWorkflow(workflowId)
+
+  const timelineEvents = useMemo(() => {
+    if (!workflowQuery.data || !workflowQuery.data.activities) {
+      return []
+    }
+
+    // Transform activities into timeline events (convert to seconds)
+    return workflowQuery.data.activities.map((activity) => {
+      const startTimeMs = new Date(activity.startedAt).getTime()
+      const endTimeMs = activity.completedAt
+        ? new Date(activity.completedAt).getTime()
+        : 0
+
+      return {
+        id: activity.activityId,
+        name: activity.activityId,
+        startTime: Math.floor(startTimeMs / 1000), // Convert to seconds
+        endTime: Math.floor(endTimeMs / 1000), // Convert to seconds
+        status: mapActivityStatus(activity.status),
+      }
+    })
+  }, [workflowQuery.data])
+
+  return {
+    data: timelineEvents,
+    isLoading: workflowQuery.isLoading,
+    error: workflowQuery.error,
+  }
 }

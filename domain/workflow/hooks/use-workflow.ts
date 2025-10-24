@@ -9,22 +9,21 @@ import type {
 import {
   formatDuration,
   formatTime,
-  formatAddress,
-  formatDurationMs,
 } from "@/lib/api/transforms"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
 
 export interface WorkflowDetails {
   id: string
   type: string
   definition: string
-  creator: string
+  creator: string | null
   status: WorkflowStatus
   createdAt: string
-  terminatedAt: string
-  terminationReason: string
+  terminatedAt: string | null
+  terminationReason: string | null
   startTime: string
-  duration: string
-  durationSec: number
+  duration: undefined | string
+  durationSec: number | null
   currentStep: number
   totalSteps: number
   stateHistory: StateTransition[]
@@ -33,26 +32,35 @@ export interface WorkflowDetails {
 }
 
 async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
-  // TODO: Replace with actual API call to GET /api/v1/workflows/{workflowId}
-  // const response = await fetch(`/api/v1/workflows/${workflowId}`)
-  // const apiResponse: WorkflowDetailResponse = await response.json()
+  let apiResponse: WorkflowDetailResponse
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl(`/api/v1/workflows/${workflowId}`)
+    const response = await fetch(url)
 
-  // MOCK DATA - Replace with actual API response
-  // Get current time for realistic "Running" workflow
-  const now = new Date()
-  const startTime = new Date(now.getTime() - 8 * 60 * 1000) // Started 8 minutes ago
-  const activity1Start = new Date(startTime.getTime() + 60 * 1000) // 1 min after start
-  const activity1End = new Date(activity1Start.getTime() + 90 * 1000) // 1.5 min duration
-  const activity2Start = new Date(activity1End.getTime() + 10 * 1000) // 10s after prev
-  const activity2End = new Date(activity2Start.getTime() + 120 * 1000) // 2 min duration
-  const activity3Start = new Date(activity2End.getTime() + 15 * 1000) // 15s after prev
-  const activity3End = new Date(activity3Start.getTime() + 150 * 1000) // 2.5 min duration
-  const activity4Start = new Date(activity3End.getTime() + 5 * 1000) // 5s after prev (currently running)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch workflow: ${response.statusText}`)
+    }
 
-  const apiResponse: WorkflowDetailResponse = {
+    apiResponse = await response.json()
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // MOCK DATA - Used when API is not configured
+    // Get current time for realistic "Running" workflow
+    const now = new Date()
+    const startTime = new Date(now.getTime() - 8 * 60 * 1000) // Started 8 minutes ago
+    const activity1Start = new Date(startTime.getTime() + 60 * 1000) // 1 min after start
+    const activity1End = new Date(activity1Start.getTime() + 90 * 1000) // 1.5 min duration
+    const activity2Start = new Date(activity1End.getTime() + 10 * 1000) // 10s after prev
+    const activity2End = new Date(activity2Start.getTime() + 120 * 1000) // 2 min duration
+    const activity3Start = new Date(activity2End.getTime() + 15 * 1000) // 15s after prev
+    const activity3End = new Date(activity3Start.getTime() + 150 * 1000) // 2.5 min duration
+    const activity4Start = new Date(activity3End.getTime() + 5 * 1000) // 5s after prev (currently running)
+
+    apiResponse = {
     workflowId: workflowId, // Use actual workflowId from params
     type: "DataProcessing",
     definition: "0xdef456789abcdef123456789abcdef12",
@@ -135,6 +143,7 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowDetails> {
         lastHeartbeatAt: new Date(now.getTime() - 5000).toISOString(), // 5s ago
       },
     ],
+    }
   }
 
   // Transform to FE format - now we keep most API fields as-is

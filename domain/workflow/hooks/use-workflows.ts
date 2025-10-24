@@ -1,12 +1,9 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query"
 import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
-import {
-  formatDuration,
-  formatTime,
-  formatAddress,
-} from "@/lib/api/transforms"
 import { useWorkflowFilterContext } from "../contexts/workflow-filter-context"
 import { useMemo } from "react"
+import { getApiUrl, isApiConfigured } from "@/lib/env"
+import { formatDurationMs } from "../../../lib/api/transforms"
 
 export interface Workflow {
   id: string
@@ -60,15 +57,24 @@ async function fetchWorkflows(params: {
   queryParams.append("page", params.page.toString())
   queryParams.append("pageSize", params.pageSize.toString())
 
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/v1/workflows?${queryParams.toString()}`)
-  // const apiResponse: WorkflowListResponse = await response.json()
+  let apiResponse: WorkflowListResponse
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  // Use actual API if configured, otherwise use mock data
+  if (isApiConfigured()) {
+    const url = getApiUrl(`/api/v1/workflows?${queryParams.toString()}`)
+    const response = await fetch(url)
 
-  // MOCK DATA - Replace with actual API response
-  const apiResponse: WorkflowListResponse = {
+    if (!response.ok) {
+      throw new Error(`Failed to fetch workflows: ${response.statusText}`)
+    }
+
+    apiResponse = await response.json()
+  } else {
+    // Simulate API delay for mock data
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    // MOCK DATA - Used when API is not configured
+    apiResponse = {
     items: [
       {
         workflowId: "0xabc123def456789",
@@ -136,24 +142,20 @@ async function fetchWorkflows(params: {
         latestActivityId: "0xactivity795",
       },
     ],
-    page: params.page, // Use the actual page from params
-    pageSize: params.pageSize,
-    total: 4021,
+      page: params.page, // Use the actual page from params
+      pageSize: params.pageSize,
+      total: 4021,
+    }
+
+    // Filter mock data based on selected statuses (for demo purposes)
+    if (params.selectedStatuses.length > 0 && params.selectedStatuses.length < 5) {
+      apiResponse.items = apiResponse.items.filter((item) =>
+        params.selectedStatuses.includes(item.status)
+      )
+    }
   }
 
-  // Filter mock data based on selected statuses (for demo purposes)
-  let filteredItems = apiResponse.items
-  if (params.selectedStatuses.length > 0 && params.selectedStatuses.length < 5) {
-    filteredItems = filteredItems.filter((item) =>
-      params.selectedStatuses.includes(item.status)
-    )
-  }
-
-  // Return the response with pagination metadata
-  return {
-    ...apiResponse,
-    items: filteredItems,
-  }
+  return apiResponse
 }
 
 export function useWorkflows(subnetId?: string) {
@@ -182,6 +184,7 @@ export function useWorkflows(subnetId?: string) {
       return currentPage < totalPages ? currentPage + 1 : undefined
     },
     initialPageParam: 1,
+    placeholderData: keepPreviousData,
   })
 
   const workflows = useMemo(() => {
@@ -193,14 +196,14 @@ export function useWorkflows(subnetId?: string) {
         type: item.type,
         definition: item.definition,
         status: item.status,
-        startTime: formatTime(item.startedAt),
-        endTime: item.endedAt ? formatTime(item.endedAt) : null,
-        duration: formatDuration(item.durationSec),
+        startTime: item.startedAt,
+        endTime: item.endedAt,
+        duration: item.durationSec != null ? formatDurationMs(item.durationSec) : undefined,
         durationSec: item.durationSec,
-        user: formatAddress(item.creator),
+        user: item.creator ,
         currentStep: item.currentStep,
         totalSteps: item.totalSteps,
-        latestActivityId: item.latestActivityId,
+        latestActivityId: item.latestActivityId || "",
       }))
     )
   }, [query.data])

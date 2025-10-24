@@ -13,15 +13,12 @@ import { WorkflowStatusBadge } from "@/domain/workflow/components/workflow-statu
 import { WorkflowInfoCard } from "@/domain/workflow/components/workflow-info-card";
 import { WorkflowTimeline } from "@/domain/workflow/components/workflow-timeline";
 import { useWorkflow } from "@/domain/workflow/hooks/use-workflow";
-import {
-  formatDurationMs,
-  formatAddress,
-  formatDateTime,
-} from "@/lib/api/transforms";
+import { formatDurationMs, formatDateTime } from "@/lib/api/transforms";
 import { Activity, BarChart3, Circle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MainContent } from "@/common/components/layout/main-content";
+import { shortenAddress } from "../../../lib/utils";
 
 export default function WorkflowDetailPage({
   params,
@@ -92,16 +89,20 @@ export default function WorkflowDetailPage({
         </div>
       ) : (
         <WorkflowInfoCard
-          workflowId={formatAddress(workflow!.id, 12)}
+          workflowId={shortenAddress(workflow!.id, 12)}
           type={workflow!.type}
-          definition={formatAddress(workflow!.definition, 12)}
-          creator={formatAddress(workflow!.creator, 12)}
+          definition={workflow!.definition}
+          creator={
+            workflow!.creator ? shortenAddress(workflow!.creator) : "System"
+          }
           status={workflow!.status}
           createdAt={workflow!.createdAt}
-          duration={workflow!.duration}
+          duration={workflow?.duration}
           completedSteps={workflow!.currentStep}
           totalSteps={workflow!.totalSteps}
           workers={workflow!.workers.length}
+          terminationReason={workflow?.terminationReason ?? undefined}
+          terminatedAt={workflow?.terminatedAt ?? undefined}
         />
       )}
 
@@ -213,7 +214,7 @@ export default function WorkflowDetailPage({
                               {activity.stepIndex}
                             </td>
                             <td className="py-3 px-4 font-mono text-xs">
-                              {formatAddress(activity.activityId, 12)}
+                              {shortenAddress(activity.activityId, 12)}
                             </td>
                             <td className="py-3 px-4">
                               <WorkflowStatusBadge status={activity.status} />
@@ -287,7 +288,7 @@ export default function WorkflowDetailPage({
                     <div className="flex items-center gap-2">
                       <Circle className="h-2 w-2 fill-success text-success" />
                       <h4 className="text-sm font-mono font-medium">
-                        {formatAddress(worker.worker, 12)}
+                        {shortenAddress(worker.worker, 12)}
                       </h4>
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
