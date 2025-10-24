@@ -43,7 +43,7 @@ function FilterButton({
   return (
     <div className="inline-flex items-center rounded-md border border-border bg-[#141618] text-sm h-7">
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center h-[inherit] rounded-l-sm px-2 gap-1.5 hover:bg-[#1E1F22FF] transition-opacity">
+        <button className="inline-flex foucs-visible:outline-none focus:outline-none items-center h-[inherit] rounded-l-sm px-2 gap-1.5 hover:bg-[#1E1F22FF] transition-opacity">
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-muted-foreground">{label}</span>
           <span className="text-foreground text-sm opacity-90">{value}</span>
@@ -53,7 +53,7 @@ function FilterButton({
 
       <button
         onClick={onClear}
-        className="hover:bg-[#1E1F22FF] h-[inherit] rounded-r-sm px-[6px] text-muted-foreground hover:text-foreground inline-flex items-center justify-center transition-colors"
+        className="focus-visible:outline-none focus:outline-none hover:bg-[#1E1F22FF] h-[inherit] rounded-r-sm px-[6px] text-muted-foreground hover:text-foreground inline-flex items-center justify-center transition-colors"
         aria-label={`Clear ${label.toLowerCase()} filter`}
       >
         <X className="h-3 w-3" />
