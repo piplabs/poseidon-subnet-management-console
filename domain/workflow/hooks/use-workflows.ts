@@ -1,13 +1,9 @@
 import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query"
 import type { WorkflowListResponse, WorkflowStatus } from "@/lib/api/types"
-import {
-  formatDuration,
-  formatTime,
-  formatAddress,
-} from "@/lib/api/transforms"
 import { useWorkflowFilterContext } from "../contexts/workflow-filter-context"
 import { useMemo } from "react"
 import { getApiUrl, isApiConfigured } from "@/lib/env"
+import { formatDurationMs } from "../../../lib/api/transforms"
 
 export interface Workflow {
   id: string
@@ -200,11 +196,11 @@ export function useWorkflows(subnetId?: string) {
         type: item.type,
         definition: item.definition,
         status: item.status,
-        startTime: formatTime(item.startedAt),
-        endTime: item.endedAt ? formatTime(item.endedAt) : null,
-        duration: formatDuration(item.durationSec),
+        startTime: item.startedAt,
+        endTime: item.endedAt,
+        duration: item.durationSec != null ? formatDurationMs(item.durationSec) : undefined,
         durationSec: item.durationSec,
-        user: item.creator ? formatAddress(item.creator) : "",
+        user: item.creator ,
         currentStep: item.currentStep,
         totalSteps: item.totalSteps,
         latestActivityId: item.latestActivityId || "",

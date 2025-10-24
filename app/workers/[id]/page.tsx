@@ -6,7 +6,6 @@ import { Skeleton } from "@/common/components/skeleton";
 import { Badge } from "@/common/components/badge";
 import { useWorker } from "@/domain/worker/hooks";
 import {
-  formatAddress,
   formatDateTime,
   formatStakedAmount,
   getWorkflowStatusColor,
@@ -25,6 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MainContent } from "@/common/components/layout/main-content";
+import { shortenAddress } from "../../../lib/utils";
 
 export default function WorkerDetailPage({
   params,
@@ -178,7 +178,7 @@ export default function WorkerDetailPage({
             <span className="text-xs text-muted-foreground">ID</span>
             <div className="flex h-5 items-center gap-2 whitespace-nowrap text-sm">
               <span className="font-mono truncate">
-                {formatAddress(worker.id, 12)}
+                {shortenAddress(worker.id, 12)}
               </span>
             </div>
           </div>
@@ -299,7 +299,7 @@ export default function WorkerDetailPage({
                       {/* Task Info */}
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-sm font-mono truncate">
-                          {formatAddress(task.workflowId, 16)}
+                          {shortenAddress(task.workflowId, 16)}
                         </span>
                       </div>
 

@@ -87,13 +87,6 @@ export function formatWaitTime(seconds: number): undefined | string {
   return formatDuration(seconds)
 }
 
-/**
- * Format blockchain address to shortened version (e.g., "0xabc123...def456")
- */
-export function formatAddress(address: string, prefixLength = 10): string {
-  if (address.length <= prefixLength + 3) return address
-  return `${address.substring(0, prefixLength)}...`
-}
 
 /**
  * Format staked amount (assuming it's in wei or similar)

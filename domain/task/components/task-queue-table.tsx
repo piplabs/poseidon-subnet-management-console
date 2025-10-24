@@ -128,17 +128,17 @@ export function TaskQueueTable({ subnetId }: { subnetId?: string }) {
 
                         {/* Column 3: Wait Times */}
                         <div className="w-[140px]">
-                          <div className="text-sm">
+                          <div className="text-sm tabular-nums">
                             Oldest: {queue.oldestPendingActivity}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
                             Avg: {queue.averageWaitTime}
                           </div>
                         </div>
 
                         {/* Column 4: Throughput */}
                         <div className="min-w-[100px]">
-                          <div className="text-sm">{queue.throughput}</div>
+                          <div className="text-sm tabular-nums">{queue.throughput}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             Throughput
                           </div>
@@ -149,7 +149,7 @@ export function TaskQueueTable({ subnetId }: { subnetId?: string }) {
                           <div className="text-sm text-muted-foreground">
                             Created
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
                             {queue.createdAtFormatted}
                           </div>
                         </div>

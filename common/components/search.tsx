@@ -11,8 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearch } from "@/common/hooks/use-search";
-import { formatAddress } from "@/lib/api/transforms";
-import { cn } from "../../lib/utils";
+import { cn, shortenAddress } from "../../lib/utils";
 
 interface SearchResult {
   id: string;
@@ -87,7 +86,7 @@ export function Search() {
     searchData.workers.forEach((worker) => {
       searchResults.push({
         id: worker.workerId,
-        title: formatAddress(worker.workerId),
+        title: shortenAddress(worker.workerId),
         subtitle: `${worker.status} • ${worker.activeTasks} active tasks`,
         type: "worker",
         href: `/workers/${worker.workerId}`,

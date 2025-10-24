@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/common/components/tooltip";
 import { useEffect, useState } from "react";
-import { formatTimestampWithTimezone } from "@/lib/utils";
+import { formatTimestampWithTimezone, getWorkflowStatusBgColor } from "@/lib/utils";
 
 interface WorkflowInfoCardProps {
   workflowId: string;
@@ -147,15 +147,7 @@ export function WorkflowInfoCard({
                 content={
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${
-                        status === "Completed"
-                          ? "bg-green-500"
-                          : status === "Running"
-                          ? "bg-blue-500"
-                          : status === "Failed"
-                          ? "bg-red-500"
-                          : "bg-gray-500"
-                      }`}
+                      className={`flex h-2.5 w-2.5 flex-none rounded-full ${getWorkflowStatusBgColor(status)}`}
                     />
                     {isTerminated && terminationReason ? (
                       <Tooltip>
@@ -192,15 +184,15 @@ export function WorkflowInfoCard({
               <Item
                 label="Duration"
                 content={
-                  <div className="flex items-center gap-2 tabular-nums">
+                  <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 flex-none" />
-                    <span>
+                    <span className="tabular-nums">
                       {shouldShowElapsedTime ? elapsedTime : duration}
                     </span>
                     {!shouldShowElapsedTime && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="cursor-help text-gray-500 text-xs">
+                          <span className="cursor-help text-gray-500 text-xs tabular-nums">
                             {relativeTime}
                           </span>
                         </TooltipTrigger>
