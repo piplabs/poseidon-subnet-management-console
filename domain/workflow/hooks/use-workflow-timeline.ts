@@ -49,7 +49,7 @@ export function useWorkflowTimeline(workflowId: string) {
 
       return {
         id: activity.activityId,
-        name: `Step ${activity.stepIndex + 1}`,
+        name: activity.activityId,
         startTime: Math.floor(startTimeMs / 1000), // Convert to seconds
         endTime: Math.floor(endTimeMs / 1000), // Convert to seconds
         status: mapActivityStatus(activity.status),

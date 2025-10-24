@@ -174,15 +174,15 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
     return formatTimestampWithTimezone(new Date(timestamp).toISOString());
   };
 
-  const timelineStart = formatTimestamp(minStartTime);
+  const timelineStart = formatTimestampWithTimezone(minStartTime * 1000);
 
   // For the end timestamp, use current time if there are pending activities
   const hasPendingActivities = timelineEvents.some(
     (e) => e.status === "pending"
   );
   const timelineEnd = hasPendingActivities
-    ? formatTimestamp(Date.now())
-    : formatTimestamp(minStartTime + maxRelativeTime);
+    ? formatTimestampWithTimezone(Date.now())
+    : formatTimestampWithTimezone((minStartTime + maxRelativeTime) * 1000);
 
   // Calculate timeline dimensions with dynamic zoom (working with selected unit)
   // The zoom level determines how many pixels per unit
@@ -284,7 +284,7 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   );
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <div className="space-y-4">
         {/* Timeline Container */}
         <div className="relative bg-card border border-border rounded-lg p-4">

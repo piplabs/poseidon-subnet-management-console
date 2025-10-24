@@ -8,20 +8,25 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Formats a timestamp to display in the user's local timezone
  * Automatically detects and uses the user's browser timezone setting
- * @param timestamp - ISO 8601 timestamp string (e.g., "2025-10-22T23:13:55.852176792Z")
+ * @param timestamp - ISO 8601 timestamp string (e.g., "2025-10-22T23:13:55.852176792Z") or Unix timestamp in milliseconds (e.g., 1761326209933)
  * @returns Formatted string like "Oct 23, 2025, 12:01:09 AM PDT" (timezone abbreviation varies by user location)
  * @example
+ * formatTimestampWithTimezone("2025-10-22T23:13:55Z") // "Oct 23, 2025, 12:01:09 AM PDT"
+ * formatTimestampWithTimezone(1761326209933) // "Oct 23, 2025, 12:01:09 AM PDT"
  * // User in PST sees: "Oct 23, 2025, 12:01:09 AM PDT"
  * // User in EST sees: "Oct 23, 2025, 3:01:09 AM EST"
  * // User in JST sees: "Oct 23, 2025, 4:01:09 PM JST"
  */
-export function formatTimestampWithTimezone(timestamp: string): string {
+export function formatTimestampWithTimezone(timestamp: string | number): string {
   try {
-    const date = new Date(timestamp);
+    // Handle both string and number inputs
+    const date = typeof timestamp === 'number'
+      ? new Date(timestamp)
+      : new Date(timestamp);
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      return timestamp; // Return original if invalid
+      return String(timestamp); // Return original if invalid
     }
 
     // Format with user's local timezone (automatically detected from browser)
@@ -38,7 +43,7 @@ export function formatTimestampWithTimezone(timestamp: string): string {
     });
   } catch (error) {
     // Return original timestamp if any error occurs
-    return timestamp;
+    return String(timestamp);
   }
 }
 
