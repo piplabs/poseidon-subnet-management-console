@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { getApiUrl, isApiConfigured } from "@/lib/env"
+import { formatTimestampWithTimezone } from "@/lib/utils"
 
 export interface TaskQueueDetails {
   id: string
@@ -99,7 +100,7 @@ async function fetchTaskQueue(queueId: string): Promise<TaskQueueDetails> {
     averageWaitTime: `${queue.avgWaitSec}s`,
     throughput: `${queue.throughputPerMin}/min`,
     currentDepth: queue.pendingActivities,
-    createdAt: new Date(queue.createdAt).toLocaleDateString(),
+    createdAt: formatTimestampWithTimezone(queue.createdAt),
     oldestPendingActivity: calculateTimeAgo(queue.oldestPendingSince),
   }
 }

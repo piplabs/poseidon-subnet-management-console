@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { getApiUrl, isApiConfigured } from "@/lib/env"
+import { formatTimestampWithTimezone } from "@/lib/utils"
 
 export interface QueueActivity {
   id: string
@@ -139,7 +140,7 @@ async function fetchQueueActivities(queueId: string): Promise<QueueActivity[]> {
       workflowId: activity.workflowId,
       workflowName: workflow?.type || "Unknown",
       status: status,
-      queuedAt: new Date(activity.startedAt).toLocaleTimeString(),
+      queuedAt: formatTimestampWithTimezone(activity.startedAt),
     }
   })
 }

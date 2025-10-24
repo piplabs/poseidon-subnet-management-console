@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/common/components/tooltip";
 import { useEffect, useState } from "react";
+import { formatTimestampWithTimezone } from "@/lib/utils";
 
 interface WorkflowInfoCardProps {
   workflowId: string;
@@ -173,7 +174,9 @@ export function WorkflowInfoCard({
                             <p>{terminationReason}</p>
                             {terminatedAt && terminatedRelativeTime && (
                               <p className="text-xs text-muted-foreground mt-2">
-                                Terminated At: {terminatedAt}
+                                Terminated {terminatedRelativeTime}
+                                <br />
+                                {formatTimestampWithTimezone(terminatedAt)}
                               </p>
                             )}
                           </div>
@@ -202,7 +205,7 @@ export function WorkflowInfoCard({
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{createdAt}</p>
+                          <p>{formatTimestampWithTimezone(createdAt)}</p>
                         </TooltipContent>
                       </Tooltip>
                     )}

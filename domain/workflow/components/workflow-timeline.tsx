@@ -26,7 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/common/components/tooltip";
-import { cn } from "../../../lib/utils";
+import { cn, formatTimestampWithTimezone } from "../../../lib/utils";
 
 interface WorkflowTimelineProps {
   workflowId: string;
@@ -169,10 +169,9 @@ export function WorkflowTimeline({ workflowId }: WorkflowTimelineProps) {
   const maxRelativeTimeInUnit = convertToSelectedUnit(maxRelativeTime);
   const completedMaxTimeInUnit = convertToSelectedUnit(completedMaxTime);
 
-  // Format absolute timestamp to readable format
+  // Format absolute timestamp to readable format with user's timezone
   const formatTimestamp = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toISOString().replace("T", " ").substring(0, 23);
+    return formatTimestampWithTimezone(new Date(timestamp).toISOString());
   };
 
   const timelineStart = formatTimestamp(minStartTime);

@@ -8,6 +8,7 @@ import type {
   ActivityStatus,
   WorkerStatus,
 } from "./types"
+import { formatTimestampWithTimezone } from "../utils"
 
 // ============================================================================
 // Format Helper Functions
@@ -65,10 +66,11 @@ export function formatTime(isoTimestamp: string): string {
 }
 
 /**
- * Format ISO timestamp to local date and time
+ * Format ISO timestamp to local date and time with timezone
+ * Example: "Oct 23, 2025, 12:01:09 AM PDT"
  */
 export function formatDateTime(isoTimestamp: string): string {
-  return new Date(isoTimestamp).toLocaleString()
+  return formatTimestampWithTimezone(isoTimestamp)
 }
 
 /**
