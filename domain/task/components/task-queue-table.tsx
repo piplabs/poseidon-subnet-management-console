@@ -61,10 +61,22 @@ export function TaskQueueTable({ subnetId }: { subnetId?: string }) {
     );
   }
 
-  if (error) {
+  // Check if error is 404 or if we just have no data
+  const is404Error = (error as any)?.status === 404;
+
+  if (error && !is404Error) {
     return (
       <div className="border border-border rounded-lg p-8 text-center">
         <p className="text-destructive">Failed to load task queues</p>
+      </div>
+    );
+  }
+
+  // Show empty state if there's a 404 error or no queues
+  if ((error && is404Error) || (!isLoading && taskQueues?.length === 0)) {
+    return (
+      <div className="border border-border rounded-lg p-8 text-center">
+        <div className="text-muted-foreground">No task queues found</div>
       </div>
     );
   }

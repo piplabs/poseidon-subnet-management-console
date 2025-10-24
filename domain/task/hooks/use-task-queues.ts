@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 import type { QueueListResponse } from "@/lib/api/types"
 import {
   formatRelativeTime,
@@ -65,7 +65,10 @@ async function fetchTaskQueues(params: {
     const response = await fetch(url)
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch task queues: ${response.statusText}`)
+      // Throw error with status code for better error handling
+      const error = new Error(`Failed to fetch task queues: ${response.statusText}`)
+      ;(error as any).status = response.status
+      throw error
     }
 
     apiResponse = await response.json()
@@ -162,6 +165,7 @@ export function useTaskQueues(subnetId?: string) {
       return currentPage < totalPages ? currentPage + 1 : undefined
     },
     initialPageParam: 1,
+    placeholderData: keepPreviousData,
   })
 
   const taskQueues = useMemo(() => {
