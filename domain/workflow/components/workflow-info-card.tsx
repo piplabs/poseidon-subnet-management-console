@@ -20,6 +20,8 @@ interface WorkflowInfoCardProps {
   completedSteps: number;
   totalSteps: number;
   workers: number;
+  terminationReason?: string;
+  terminatedAt?: string;
 }
 
 // Item component for label and content
@@ -87,9 +89,16 @@ export function WorkflowInfoCard({
   completedSteps,
   totalSteps,
   workers,
+  terminationReason,
+  terminatedAt,
 }: WorkflowInfoCardProps) {
   const progressPercentage = (completedSteps / totalSteps) * 100;
   const relativeTime = getRelativeTime(createdAt);
+
+  const isTerminated = status.toLowerCase() === "terminated";
+  const terminatedRelativeTime = terminatedAt
+    ? getRelativeTime(terminatedAt)
+    : null;
 
   // State for live elapsed time updates
   const [elapsedTime, setElapsedTime] = useState<string>(() =>
@@ -135,20 +144,45 @@ export function WorkflowInfoCard({
               <Item
                 label="Status"
                 content={
-                  <>
+                  <div className="flex items-center gap-2">
                     <span
                       className={`flex h-2.5 w-2.5 flex-none rounded-full ${
-                        status === "completed"
+                        status === "Completed"
                           ? "bg-green-500"
-                          : status === "running"
+                          : status === "Running"
                           ? "bg-blue-500"
-                          : status === "failed"
+                          : status === "Failed"
                           ? "bg-red-500"
                           : "bg-gray-500"
                       }`}
                     />
-                    <span className="capitalize">{status}</span>
-                  </>
+                    {isTerminated && terminationReason ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="capitalize cursor-help">
+                            {status}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          align="start"
+                          alignOffset={-10}
+                          sideOffset={6}
+                        >
+                          <div className="space-y-1 text-xs">
+                            <p>{terminationReason}</p>
+                            {terminatedAt && terminatedRelativeTime && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Terminated At: {terminatedAt}
+                              </p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="capitalize">{status}</span>
+                    )}
+                  </div>
                 }
               />
 

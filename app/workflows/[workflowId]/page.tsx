@@ -104,6 +104,8 @@ export default function WorkflowDetailPage({
           completedSteps={workflow!.currentStep}
           totalSteps={workflow!.totalSteps}
           workers={workflow!.workers.length}
+          terminationReason={workflow?.terminationReason ?? undefined}
+          terminatedAt={workflow?.terminatedAt ?? undefined}
         />
       )}
 
