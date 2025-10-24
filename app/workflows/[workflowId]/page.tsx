@@ -95,10 +95,12 @@ export default function WorkflowDetailPage({
           workflowId={formatAddress(workflow!.id, 12)}
           type={workflow!.type}
           definition={formatAddress(workflow!.definition, 12)}
-          creator={workflow!.creator ? formatAddress(workflow!.creator, 12) : "System"}
+          creator={
+            workflow!.creator ? formatAddress(workflow!.creator, 12) : "System"
+          }
           status={workflow!.status}
           createdAt={workflow!.createdAt}
-          duration={workflow!.duration}
+          duration={workflow?.duration}
           completedSteps={workflow!.currentStep}
           totalSteps={workflow!.totalSteps}
           workers={workflow!.workers.length}

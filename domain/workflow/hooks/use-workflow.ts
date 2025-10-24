@@ -9,8 +9,6 @@ import type {
 import {
   formatDuration,
   formatTime,
-  formatAddress,
-  formatDurationMs,
 } from "@/lib/api/transforms"
 import { getApiUrl, isApiConfigured } from "@/lib/env"
 
@@ -24,7 +22,7 @@ export interface WorkflowDetails {
   terminatedAt: string | null
   terminationReason: string | null
   startTime: string
-  duration: string
+  duration: undefined | string
   durationSec: number | null
   currentStep: number
   totalSteps: number

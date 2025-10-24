@@ -16,8 +16,8 @@ import type {
 /**
  * Format duration in seconds to readable string (e.g., "5m 30s")
  */
-export function formatDuration(seconds: number | null): string {
-  if (seconds === null || seconds === undefined) return "-"
+export function formatDuration(seconds: number | null): undefined | string {
+  if (seconds === null || seconds === undefined) return undefined
   if (seconds === 0) return "0s"
 
   const mins = Math.floor(seconds / 60)
@@ -31,8 +31,8 @@ export function formatDuration(seconds: number | null): string {
 /**
  * Format duration in milliseconds to readable string
  */
-export function formatDurationMs(ms: number | null): string {
-  if (ms === null || ms === undefined) return "-"
+export function formatDurationMs(ms: number | null): undefined | string {
+  if (ms === null || ms === undefined) return undefined
   return formatDuration(Math.round(ms / 1000))
 }
 
@@ -81,7 +81,7 @@ export function formatThroughput(perMinute: number): string {
 /**
  * Format wait time in seconds to readable string
  */
-export function formatWaitTime(seconds: number): string {
+export function formatWaitTime(seconds: number): undefined | string {
   return formatDuration(seconds)
 }
 
